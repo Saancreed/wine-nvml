@@ -1,0 +1,19 @@
+[binaries]
+c = 'winegcc'
+cpp = 'wineg++'
+ar = 'ar'
+strip = 'strip'
+
+[built-in options]
+c_args = ['-m32', '-fno-gnu-unique', '-D__WINESRC__', '-Wno-attributes', '-Wno-implicit-function-declaration']
+c_link_args = ['-m32', '-mwindows']
+
+[properties]
+needs_exe_wrapper = true
+winelib = true
+
+[host_machine]
+system = 'linux'
+cpu_family = 'x86'
+cpu = 'i686'
+endian = 'little'
