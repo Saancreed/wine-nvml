@@ -1,0 +1,6 @@
+[submodule "submodules/nvidia-settings"]
+	path = submodules/nvidia-settings
+	url = https://github.com/NVIDIA/nvidia-settings.git
+[submodule "submodules/wine"]
+	path = submodules/wine
+	url = https://github.com/wine-mirror/wine.git
