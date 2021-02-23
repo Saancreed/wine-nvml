@@ -16,7 +16,7 @@ Please refer to `build.sh` helper script for automated (but simplified and not v
 
 ## Installing
 
-In order for Wine to find and make use of `wine-nvml`, build wrapper libraries must be placed into specific locations. Two installation modes are expected to work:
+In order for Wine to find and make use of `wine-nvml`, built wrapper libraries must be placed into specific locations. Two installation modes are expected to work:
 
 ### Local installation (affects only a single Wine prefix)
 
