@@ -35,8 +35,8 @@ WINE_DEFAULT_DEBUG_CHANNEL(nvml);
 static void *libnvidia_ml_handle = NULL;
 
 static const char* (*pnvmlErrorString)(nvmlReturn_t result) = NULL;
-static nvmlReturn_t (*pnvmlInit_v2)(void) = NULL;
 static nvmlReturn_t (*pnvmlInitWithFlags)(unsigned int flags) = NULL;
+static nvmlReturn_t (*pnvmlInit_v2)(void) = NULL;
 static nvmlReturn_t (*pnvmlShutdown)(void) = NULL;
 static nvmlReturn_t (*pnvmlSystemGetCudaDriverVersion)(int *cudaDriverVersion) = NULL;
 static nvmlReturn_t (*pnvmlSystemGetCudaDriverVersion_v2)(int *cudaDriverVersion) = NULL;
@@ -51,8 +51,8 @@ static nvmlReturn_t (*pnvmlDeviceGetEnforcedPowerLimit)(nvmlDevice_t device, uns
 static nvmlReturn_t (*pnvmlDeviceGetHandleByIndex_v2)(unsigned int index, nvmlDevice_t *device) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetMemoryInfo)(nvmlDevice_t device, nvmlMemory_t *memory) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetName)(nvmlDevice_t device, char *name, unsigned int length) = NULL;
-static nvmlReturn_t (*pnvmlDeviceGetPerformanceState)(nvmlDevice_t device, nvmlPstates_t *pState) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetPciInfo_v3)(nvmlDevice_t device, nvmlPciInfo_t *pci) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetPerformanceState)(nvmlDevice_t device, nvmlPstates_t *pState) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetPowerUsage)(nvmlDevice_t device, unsigned int *power) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetTemperature)(nvmlDevice_t device, nvmlTemperatureSensors_t sensorType, unsigned int *temp) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetUtilizationRates)(nvmlDevice_t device, nvmlUtilization_t *utilization) = NULL;
@@ -170,19 +170,19 @@ nvmlReturn_t nvmlDeviceGetName(nvmlDevice_t device, char *name, unsigned int len
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
-nvmlReturn_t nvmlDeviceGetPerformanceState(nvmlDevice_t device, nvmlPstates_t *pState)
-{
-    TRACE("(%p, %p)\n", device, pState);
-    return pnvmlDeviceGetPerformanceState
-        ? pnvmlDeviceGetPerformanceState(device, pState)
-        : NVML_ERROR_FUNCTION_NOT_FOUND;
-}
-
 nvmlReturn_t nvmlDeviceGetPciInfo_v3(nvmlDevice_t device, nvmlPciInfo_t *pci)
 {
     TRACE("(%p, %p)\n", device, pci);
     return pnvmlDeviceGetPciInfo_v3
         ? pnvmlDeviceGetPciInfo_v3(device, pci)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t nvmlDeviceGetPerformanceState(nvmlDevice_t device, nvmlPstates_t *pState)
+{
+    TRACE("(%p, %p)\n", device, pState);
+    return pnvmlDeviceGetPerformanceState
+        ? pnvmlDeviceGetPerformanceState(device, pState)
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
@@ -249,8 +249,8 @@ static BOOL load_nvml(void)
     TRY_LOAD_FUNCPTR(nvmlDeviceGetHandleByIndex_v2);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetMemoryInfo);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetName);
-    TRY_LOAD_FUNCPTR(nvmlDeviceGetPerformanceState);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetPciInfo_v3);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetPerformanceState);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetPowerUsage);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetTemperature);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetUtilizationRates);
