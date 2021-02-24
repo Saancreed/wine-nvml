@@ -69,12 +69,12 @@
 @ stub nvmlDeviceGetGridLicensableFeatures
 @ stub nvmlDeviceGetGridLicensableFeatures_v2
 @ stub nvmlDeviceGetGridLicensableFeatures_v3
-@ stub nvmlDeviceGetHandleByIndex
+@ stdcall nvmlDeviceGetHandleByIndex(long ptr)
 @ stdcall nvmlDeviceGetHandleByIndex_v2(long ptr)
-@ stub nvmlDeviceGetHandleByPciBusId
-@ stub nvmlDeviceGetHandleByPciBusId_v2
-@ stub nvmlDeviceGetHandleBySerial
-@ stub nvmlDeviceGetHandleByUUID
+@ stdcall nvmlDeviceGetHandleByPciBusId(str ptr)
+@ stdcall nvmlDeviceGetHandleByPciBusId_v2(str ptr)
+@ stdcall nvmlDeviceGetHandleBySerial(str ptr)
+@ stdcall nvmlDeviceGetHandleByUUID(str ptr)
 @ stub nvmlDeviceGetHostVgpuMode
 @ stub nvmlDeviceGetIndex
 @ stub nvmlDeviceGetInforomConfigurationChecksum

@@ -50,7 +50,12 @@ static nvmlReturn_t (*pnvmlDeviceGetCurrPcieLinkWidth)(nvmlDevice_t device, unsi
 static nvmlReturn_t (*pnvmlDeviceGetCurrentClocksThrottleReasons)(nvmlDevice_t device, unsigned long long *clocksThrottleReasons) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetEnforcedPowerLimit)(nvmlDevice_t device, unsigned int *limit) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetFanSpeed_v2)(nvmlDevice_t device, unsigned int fan, unsigned int *speed) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetHandleByIndex)(unsigned int index, nvmlDevice_t *device) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetHandleByIndex_v2)(unsigned int index, nvmlDevice_t *device) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetHandleByPciBusId)(const char *pciBusId, nvmlDevice_t *device) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetHandleByPciBusId_v2)(const char *pciBusId, nvmlDevice_t *device) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetHandleBySerial)(const char *serial, nvmlDevice_t *device) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetHandleByUUID)(const char *uuid, nvmlDevice_t *device) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetMemoryInfo)(nvmlDevice_t device, nvmlMemory_t *memory) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetName)(nvmlDevice_t device, char *name, unsigned int length) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetPciInfo_v3)(nvmlDevice_t device, nvmlPciInfo_t *pci) = NULL;
@@ -166,11 +171,51 @@ nvmlReturn_t nvmlDeviceGetFanSpeed_v2(nvmlDevice_t device, unsigned int fan, uns
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
+nvmlReturn_t nvmlDeviceGetHandleByIndex(unsigned int index, nvmlDevice_t *device)
+{
+    TRACE("(%u, %p)\n", index, device);
+    return pnvmlDeviceGetHandleByIndex
+        ? pnvmlDeviceGetHandleByIndex(index, device)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
 nvmlReturn_t nvmlDeviceGetHandleByIndex_v2(unsigned int index, nvmlDevice_t *device)
 {
     TRACE("(%u, %p)\n", index, device);
     return pnvmlDeviceGetHandleByIndex_v2
         ? pnvmlDeviceGetHandleByIndex_v2(index, device)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t nvmlDeviceGetHandleByPciBusId(const char *pciBusId, nvmlDevice_t *device)
+{
+    TRACE("(%s, %p)\n", pciBusId, device);
+    return pnvmlDeviceGetHandleByPciBusId
+        ? pnvmlDeviceGetHandleByPciBusId(pciBusId, device)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t nvmlDeviceGetHandleByPciBusId_v2(const char *pciBusId, nvmlDevice_t *device)
+{
+    TRACE("(%s, %p)\n", pciBusId, device);
+    return pnvmlDeviceGetHandleByPciBusId_v2
+        ? pnvmlDeviceGetHandleByPciBusId_v2(pciBusId, device)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t nvmlDeviceGetHandleBySerial(const char *serial, nvmlDevice_t *device)
+{
+    TRACE("(%s, %p)\n", serial, device);
+    return pnvmlDeviceGetHandleBySerial
+        ? pnvmlDeviceGetHandleBySerial(serial, device)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t nvmlDeviceGetHandleByUUID(const char *uuid, nvmlDevice_t *device)
+{
+    TRACE("(%s, %p)\n", uuid, device);
+    return pnvmlDeviceGetHandleByUUID
+        ? pnvmlDeviceGetHandleByUUID(uuid, device)
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
@@ -284,7 +329,12 @@ static BOOL load_nvml(void)
     TRY_LOAD_FUNCPTR(nvmlDeviceGetCurrentClocksThrottleReasons);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetEnforcedPowerLimit);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetFanSpeed_v2);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetHandleByIndex);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetHandleByIndex_v2);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetHandleByPciBusId);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetHandleByPciBusId_v2);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetHandleBySerial);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetHandleByUUID);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetMemoryInfo);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetName);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetPciInfo_v3);
