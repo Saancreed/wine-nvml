@@ -76,7 +76,7 @@
 @ stdcall nvmlDeviceGetHandleBySerial(str ptr)
 @ stdcall nvmlDeviceGetHandleByUUID(str ptr)
 @ stub nvmlDeviceGetHostVgpuMode
-@ stub nvmlDeviceGetIndex
+@ stdcall nvmlDeviceGetIndex(ptr ptr)
 @ stub nvmlDeviceGetInforomConfigurationChecksum
 @ stub nvmlDeviceGetInforomImageVersion
 @ stub nvmlDeviceGetInforomVersion
@@ -103,8 +103,8 @@
 @ stub nvmlDeviceGetNvLinkUtilizationCounter
 @ stub nvmlDeviceGetNvLinkVersion
 @ stub nvmlDeviceGetP2PStatus
-@ stub nvmlDeviceGetPciInfo
-@ stub nvmlDeviceGetPciInfo_v2
+@ stdcall nvmlDeviceGetPciInfo(ptr ptr)
+@ stdcall nvmlDeviceGetPciInfo_v2(ptr ptr)
 @ stdcall nvmlDeviceGetPciInfo_v3(ptr ptr)
 @ stub nvmlDeviceGetPcieReplayCounter
 @ stub nvmlDeviceGetPcieThroughput
@@ -124,7 +124,7 @@
 @ stub nvmlDeviceGetRetiredPages_v2
 @ stub nvmlDeviceGetRowRemapperHistogram
 @ stub nvmlDeviceGetSamples
-@ stub nvmlDeviceGetSerial
+@ stdcall nvmlDeviceGetSerial(ptr str long)
 @ stub nvmlDeviceGetSupportedClocksThrottleReasons
 @ stub nvmlDeviceGetSupportedEventTypes
 @ stub nvmlDeviceGetSupportedGraphicsClocks
@@ -136,7 +136,7 @@
 @ stub nvmlDeviceGetTopologyNearestGpus
 @ stub nvmlDeviceGetTotalEccErrors
 @ stub nvmlDeviceGetTotalEnergyConsumption
-@ stub nvmlDeviceGetUUID
+@ stdcall nvmlDeviceGetUUID(ptr str long)
 @ stdcall nvmlDeviceGetUtilizationRates(ptr ptr)
 @ stdcall nvmlDeviceGetVbiosVersion(ptr str long)
 @ stub nvmlDeviceGetVgpuMetadata
