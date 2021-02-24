@@ -46,8 +46,10 @@ static nvmlReturn_t (*pnvmlSystemGetNVMLVersion)(char *version, unsigned int len
 static nvmlReturn_t (*pnvmlDeviceGetClock)(nvmlDevice_t device, nvmlClockType_t clockType, nvmlClockId_t clockId, unsigned int *clockMHz) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetComputeMode)(nvmlDevice_t device, nvmlComputeMode_t *mode) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetCount_v2)(unsigned int *deviceCount) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetCurrPcieLinkWidth)(nvmlDevice_t device, unsigned int *currLinkWidth) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetCurrentClocksThrottleReasons)(nvmlDevice_t device, unsigned long long *clocksThrottleReasons) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetEnforcedPowerLimit)(nvmlDevice_t device, unsigned int *limit) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetFanSpeed_v2)(nvmlDevice_t device, unsigned int fan, unsigned int *speed) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetHandleByIndex_v2)(unsigned int index, nvmlDevice_t *device) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetMemoryInfo)(nvmlDevice_t device, nvmlMemory_t *memory) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetName)(nvmlDevice_t device, char *name, unsigned int length) = NULL;
@@ -55,7 +57,9 @@ static nvmlReturn_t (*pnvmlDeviceGetPciInfo_v3)(nvmlDevice_t device, nvmlPciInfo
 static nvmlReturn_t (*pnvmlDeviceGetPerformanceState)(nvmlDevice_t device, nvmlPstates_t *pState) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetPowerUsage)(nvmlDevice_t device, unsigned int *power) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetTemperature)(nvmlDevice_t device, nvmlTemperatureSensors_t sensorType, unsigned int *temp) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetTemperatureThreshold)(nvmlDevice_t device, nvmlTemperatureThresholds_t thresholdType, unsigned int *temp) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetUtilizationRates)(nvmlDevice_t device, nvmlUtilization_t *utilization) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetVbiosVersion)(nvmlDevice_t device, char *version, unsigned int length) = NULL;
 static nvmlReturn_t (*pnvmlDeviceSetComputeMode)(nvmlDevice_t device, nvmlComputeMode_t mode) = NULL;
 
 const char* nvmlErrorString(nvmlReturn_t result)
@@ -130,6 +134,14 @@ nvmlReturn_t nvmlDeviceGetCount_v2(unsigned int *deviceCount)
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
+nvmlReturn_t nvmlDeviceGetCurrPcieLinkWidth(nvmlDevice_t device, unsigned int *currLinkWidth)
+{
+    TRACE("(%p, %p)\n", device, currLinkWidth);
+    return pnvmlDeviceGetCurrPcieLinkWidth
+        ? pnvmlDeviceGetCurrPcieLinkWidth(device, currLinkWidth)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
 nvmlReturn_t nvmlDeviceGetCurrentClocksThrottleReasons(nvmlDevice_t device, unsigned long long *clocksThrottleReasons)
 {
     TRACE("(%p, %p)\n", device, clocksThrottleReasons);
@@ -143,6 +155,14 @@ nvmlReturn_t nvmlDeviceGetEnforcedPowerLimit(nvmlDevice_t device, unsigned int *
     TRACE("(%p, %p)\n", device, limit);
     return pnvmlDeviceGetEnforcedPowerLimit
         ? pnvmlDeviceGetEnforcedPowerLimit(device, limit)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t nvmlDeviceGetFanSpeed_v2(nvmlDevice_t device, unsigned int fan, unsigned int *speed)
+{
+    TRACE("(%p, %u, %p)\n", device, fan, speed);
+    return pnvmlDeviceGetFanSpeed_v2
+        ? pnvmlDeviceGetFanSpeed_v2(device, fan, speed)
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
@@ -202,11 +222,27 @@ nvmlReturn_t nvmlDeviceGetTemperature(nvmlDevice_t device, nvmlTemperatureSensor
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
+nvmlReturn_t nvmlDeviceGetTemperatureThreshold(nvmlDevice_t device, nvmlTemperatureThresholds_t thresholdType, unsigned int *temp)
+{
+    TRACE("(%p, %u, %p)\n", device, thresholdType, temp);
+    return pnvmlDeviceGetTemperatureThreshold
+        ? pnvmlDeviceGetTemperatureThreshold(device, thresholdType, temp)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
 nvmlReturn_t nvmlDeviceGetUtilizationRates(nvmlDevice_t device, nvmlUtilization_t *utilization)
 {
     TRACE("(%p, %p)\n", device, utilization);
     return pnvmlDeviceGetUtilizationRates
         ? pnvmlDeviceGetUtilizationRates(device, utilization)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t nvmlDeviceGetVbiosVersion(nvmlDevice_t device, char *version, unsigned int length)
+{
+    TRACE("(%p, %p, %u)\n", device, version, length);
+    return pnvmlDeviceGetVbiosVersion
+        ? pnvmlDeviceGetVbiosVersion(device, version, length)
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
@@ -244,8 +280,10 @@ static BOOL load_nvml(void)
     TRY_LOAD_FUNCPTR(nvmlDeviceGetClock);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetComputeMode);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetCount_v2);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetCurrPcieLinkWidth);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetCurrentClocksThrottleReasons);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetEnforcedPowerLimit);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetFanSpeed_v2);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetHandleByIndex_v2);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetMemoryInfo);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetName);
@@ -253,7 +291,9 @@ static BOOL load_nvml(void)
     TRY_LOAD_FUNCPTR(nvmlDeviceGetPerformanceState);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetPowerUsage);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetTemperature);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetTemperatureThreshold);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetUtilizationRates);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetVbiosVersion);
     TRY_LOAD_FUNCPTR(nvmlDeviceSetComputeMode);
 
     #undef TRY_LOAD_FUNCPTR

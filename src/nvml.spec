@@ -37,7 +37,7 @@
 @ stub nvmlDeviceGetCreatableVgpus
 @ stub nvmlDeviceGetCudaComputeCapability
 @ stub nvmlDeviceGetCurrPcieLinkGeneration
-@ stub nvmlDeviceGetCurrPcieLinkWidth
+@ stdcall nvmlDeviceGetCurrPcieLinkWidth(ptr ptr)
 @ stdcall nvmlDeviceGetCurrentClocksThrottleReasons(ptr ptr)
 @ stub nvmlDeviceGetDecoderUtilization
 @ stub nvmlDeviceGetDefaultApplicationsClock
@@ -55,7 +55,7 @@
 @ stub nvmlDeviceGetFBCSessions
 @ stub nvmlDeviceGetFBCStats
 @ stub nvmlDeviceGetFanSpeed
-@ stub nvmlDeviceGetFanSpeed_v2
+@ stdcall nvmlDeviceGetFanSpeed_v2(ptr long ptr)
 @ stub nvmlDeviceGetFieldValues
 @ stub nvmlDeviceGetGpuInstanceById
 @ stub nvmlDeviceGetGpuInstanceId
@@ -131,14 +131,14 @@
 @ stub nvmlDeviceGetSupportedMemoryClocks
 @ stub nvmlDeviceGetSupportedVgpus
 @ stdcall nvmlDeviceGetTemperature(ptr long ptr)
-@ stub nvmlDeviceGetTemperatureThreshold
+@ stdcall nvmlDeviceGetTemperatureThreshold(ptr long ptr)
 @ stub nvmlDeviceGetTopologyCommonAncestor
 @ stub nvmlDeviceGetTopologyNearestGpus
 @ stub nvmlDeviceGetTotalEccErrors
 @ stub nvmlDeviceGetTotalEnergyConsumption
 @ stub nvmlDeviceGetUUID
 @ stdcall nvmlDeviceGetUtilizationRates(ptr ptr)
-@ stub nvmlDeviceGetVbiosVersion
+@ stdcall nvmlDeviceGetVbiosVersion(ptr str long)
 @ stub nvmlDeviceGetVgpuMetadata
 @ stub nvmlDeviceGetVgpuProcessUtilization
 @ stub nvmlDeviceGetVgpuUtilization
