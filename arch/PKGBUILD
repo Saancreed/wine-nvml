@@ -1,0 +1,64 @@
+pkgname=wine-nvml
+pkgver=r9.95ab169
+pkgrel=1
+pkgdesc='NVIDIA Management Library wrapper for Wine'
+arch=('x86_64')
+url='https://github.com/Saancreed/wine-nvml'
+license=('LGPL2.1')
+makedepends=('git' 'meson' 'ninja' 'wine')
+source=("git+https://github.com/Saancreed/wine-nvml.git${_commit:+#commit=${_commit}}"
+        'git+https://github.com/NVIDIA/nvidia-settings.git'
+        'git+https://github.com/wine-mirror/wine.git')
+sha512sums=('SKIP' 'SKIP' 'SKIP')
+
+prepare()
+{
+    cd "${srcdir}/wine-nvml"
+
+    git submodule init
+
+    for _submodule in nvidia-settings wine
+    do
+        git config "submodule.submodules/${_submodule}.url" "${srcdir}/${_submodule}"
+    done
+
+    git submodule update
+}
+
+pkgver()
+{
+    cd "${srcdir}/wine-nvml"
+
+    printf 'r%s.%s' "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build()
+{
+    cd "${srcdir}/wine-nvml"
+
+    meson setup ../build-wine64 \
+        --cross-file ./build-wine64.txt \
+        --prefix /usr \
+        --libdir lib \
+        --buildtype release \
+        --strip
+
+    ninja -C ../build-wine64
+
+    meson setup ../build-wine32 \
+        --cross-file ./build-wine32.txt \
+        --prefix /usr \
+        --libdir lib32 \
+        --buildtype release \
+        --strip
+
+    ninja -C ../build-wine32
+}
+
+package()
+{
+    depends=('lib32-nvidia-utils' 'nvidia-utils' 'wine')
+
+    DESTDIR="${pkgdir}" ninja -C "${srcdir}/build-wine64" install
+    DESTDIR="${pkgdir}" ninja -C "${srcdir}/build-wine32" install
+}
