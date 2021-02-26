@@ -1,6 +1,6 @@
 CC      := winegcc
-CFLAGS  += -I../src
-LDFLAGS += -lnvml
+CFLAGS  += -mno-cygwin -mabi=ms -I../src
+LDFLAGS += -mno-cygwin -mabi=ms -lnvml
 
 example: example.o
 
