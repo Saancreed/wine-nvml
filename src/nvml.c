@@ -17,10 +17,6 @@
  *
  */
 
-#define NVML_STATIC_IMPORT
-#define NVML_NO_UNVERSIONED_FUNC_DEFS
-#include "nvml.h"
-
 #include "config.h"
 #include "wine/port.h"
 
@@ -31,6 +27,11 @@
 #include "wine/debug.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(nvml);
+
+#undef _WINDOWS
+#define NVML_NO_UNVERSIONED_FUNC_DEFS
+
+#include "nvml.h"
 
 static void *libnvidia_ml_handle = NULL;
 
