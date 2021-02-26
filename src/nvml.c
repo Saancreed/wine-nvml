@@ -352,7 +352,7 @@ static BOOL load_nvml(void)
         return FALSE;
     }
 
-    #define LOAD_FUNCPTR(f) if (!(p##f = dlsym(libnvidia_ml_handle, #f))) { ERR("Can't find symbol %s.\n", #f); goto fail; }
+    #define LOAD_FUNCPTR(f) if (!(*(void **)(&p##f) = dlsym(libnvidia_ml_handle, #f))) { ERR("Can't find symbol %s.\n", #f); goto fail; }
 
     LOAD_FUNCPTR(nvmlErrorString);
     LOAD_FUNCPTR(nvmlInitWithFlags);
@@ -365,7 +365,7 @@ static BOOL load_nvml(void)
 
     #undef LOAD_FUNCPTR
 
-    #define TRY_LOAD_FUNCPTR(f) if (!(p##f = dlsym(libnvidia_ml_handle, #f))) { WARN("Can't find symbol %s.\n", #f); }
+    #define TRY_LOAD_FUNCPTR(f) if (!(*(void **)(&p##f) = dlsym(libnvidia_ml_handle, #f))) { WARN("Can't find symbol %s.\n", #f); }
 
     TRY_LOAD_FUNCPTR(nvmlDeviceGetClock);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetComputeMode);
