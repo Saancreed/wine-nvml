@@ -21,6 +21,7 @@ nvml_dll_target = custom_target('nvml.dll',
 nvml_dll = shared_library('nvml.dll', ['nvml.c'],
     name_prefix  : '',
     dependencies : [lib_dl],
-    objects      : ['nvml.spec'],
+    link_depends : [nvml_def_target],
+    link_args    : [meson.current_build_dir() / 'libnvml.def'],
     install      : true,
     install_dir  : install_dir)
