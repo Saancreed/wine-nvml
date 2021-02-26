@@ -1,6 +1,6 @@
 project('wine-nvml', ['c'], version: '461.09', license: 'LGPL-2.1-or-later')
 
-lib_dl = declare_dependency(link_args: ['-ldl'])
+lib_dl = meson.get_compiler('c').find_library('dl')
 
 winebuild = find_program('winebuild')
 wrc       = find_program('wrc')
