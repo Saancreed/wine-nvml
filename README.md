@@ -27,12 +27,12 @@ It is possible to install `wine-nvml` directly into a Wine prefix by renaming ge
 Generated files can also be installed alongside other fakedlls of your Wine installation. For example, on Arch Linux using the `wine` package it would be:
 
 ```sh
-/usr/lib/wine/nvml.dll.so
-/usr/lib/wine/libnvml.def
-/usr/lib/wine/fakedlls/nvml.dll
-/usr/lib32/wine/nvml.dll.so
-/usr/lib32/wine/libnvml.def
-/usr/lib32/wine/fakedlls/nvml.dll
+/usr/lib/wine/x86_64-unix/libnvml.def
+/usr/lib/wine/x86_64-unix/nvml.dll.so
+/usr/lib/wine/x86_64-windows/nvml.dll
+/usr/lib32/wine/i386-unix/libnvml.def
+/usr/lib32/wine/i386-unix/nvml.dll.so
+/usr/lib32/wine/i386-windows/nvml.dll
 ```
 
 Calling `DESTDIR=. ./build.sh --install` will create such file tree in the current directory.
