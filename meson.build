@@ -1,4 +1,4 @@
-project('wine-nvml', ['c'], version: '461.09', license: 'LGPL-2.1-or-later')
+project('wine-nvml', ['c'], version: '466.27', license: 'LGPL-2.1-or-later')
 
 lib_dl = meson.get_compiler('c').find_library('dl')
 
