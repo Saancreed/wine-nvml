@@ -45,7 +45,7 @@
 # @ stub nvmlDeviceGetDeviceHandleFromMigDeviceHandle
 # @ stub nvmlDeviceGetDisplayActive
 # @ stub nvmlDeviceGetDisplayMode
-# @ stub nvmlDeviceGetDriverModel
+@ cdecl nvmlDeviceGetDriverModel(ptr ptr ptr)
 # @ stub nvmlDeviceGetEccMode
 # @ stub nvmlDeviceGetEncoderCapacity
 # @ stub nvmlDeviceGetEncoderSessions
@@ -163,7 +163,7 @@
 @ cdecl nvmlDeviceSetComputeMode(ptr long)
 # @ stub nvmlDeviceSetCpuAffinity
 # @ stub nvmlDeviceSetDefaultAutoBoostedClocksEnabled
-# @ stub nvmlDeviceSetDriverModel
+@ cdecl nvmlDeviceSetDriverModel(ptr long long)
 # @ stub nvmlDeviceSetEccMode
 # @ stub nvmlDeviceSetGpuLockedClocks
 # @ stub nvmlDeviceSetGpuOperationMode

@@ -182,6 +182,24 @@ nvmlReturn_t __cdecl nvmlDeviceGetDecoderUtilization(nvmlDevice_t device, unsign
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
+nvmlReturn_t __cdecl nvmlDeviceGetDriverModel(nvmlDevice_t device, nvmlDriverModel_t *current, nvmlDriverModel_t *pending)
+{
+    TRACE("(%p, %p, %p)\n", device, current, pending);
+
+    if (!current && !pending) return NVML_ERROR_INVALID_ARGUMENT;
+
+    unsigned int index;
+    nvmlReturn_t ret = nvmlDeviceGetIndex(device, &index);
+
+    if (ret == NVML_SUCCESS)
+    {
+        if (current) *current = NVML_DRIVER_WDDM;
+        if (pending) *pending = NVML_DRIVER_WDDM;
+    }
+
+    return ret;
+}
+
 nvmlReturn_t __cdecl nvmlDeviceGetEncoderUtilization(nvmlDevice_t device, unsigned int *utilization, unsigned int *samplingPeriodUs)
 {
     TRACE("(%p, %p, %p)\n", device, utilization, samplingPeriodUs);
@@ -372,6 +390,18 @@ nvmlReturn_t __cdecl nvmlDeviceSetComputeMode(nvmlDevice_t device, nvmlComputeMo
     return pnvmlDeviceSetComputeMode
         ? pnvmlDeviceSetComputeMode(device, mode)
         : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceSetDriverModel(nvmlDevice_t device, nvmlDriverModel_t driverModel, unsigned int flags)
+{
+    TRACE("(%p, %u, %u)\n", device, driverModel, flags);
+
+    if (driverModel != NVML_DRIVER_WDDM && driverModel != NVML_DRIVER_WDM) return NVML_ERROR_INVALID_ARGUMENT;
+
+    unsigned int index;
+    nvmlReturn_t ret = nvmlDeviceGetIndex(device, &index);
+
+    return ret == NVML_SUCCESS ? NVML_ERROR_NOT_SUPPORTED : ret;
 }
 
 static BOOL load_nvml(void)
