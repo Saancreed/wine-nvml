@@ -2,7 +2,7 @@
 # @ stub nvmlComputeInstanceGetInfo
 # @ stub nvmlComputeInstanceGetInfo_v2
 # @ stub nvmlDeviceClearAccountingPids
-# @ stub nvmlDeviceClearCpuAffinity
+@ cdecl nvmlDeviceClearCpuAffinity(ptr)
 # @ stub nvmlDeviceClearEccErrorCounts
 # @ stub nvmlDeviceCreateGpuInstance
 # @ stub nvmlDeviceCreateGpuInstanceWithPlacement
@@ -32,8 +32,8 @@
 # @ stub nvmlDeviceGetComputeRunningProcesses_v2
 # @ stub nvmlDeviceGetCount
 @ cdecl nvmlDeviceGetCount_v2(ptr)
-# @ stub nvmlDeviceGetCpuAffinity
-# @ stub nvmlDeviceGetCpuAffinityWithinScope
+@ cdecl nvmlDeviceGetCpuAffinity(ptr long ptr)
+@ cdecl nvmlDeviceGetCpuAffinityWithinScope(ptr long ptr long)
 # @ stub nvmlDeviceGetCreatableVgpus
 # @ stub nvmlDeviceGetCudaComputeCapability
 # @ stub nvmlDeviceGetCurrPcieLinkGeneration
@@ -86,12 +86,12 @@
 # @ stub nvmlDeviceGetMaxMigDeviceCount
 # @ stub nvmlDeviceGetMaxPcieLinkGeneration
 # @ stub nvmlDeviceGetMaxPcieLinkWidth
-# @ stub nvmlDeviceGetMemoryAffinity
+@ cdecl nvmlDeviceGetMemoryAffinity(ptr long ptr long)
 # @ stub nvmlDeviceGetMemoryErrorCounter
 @ cdecl nvmlDeviceGetMemoryInfo(ptr ptr)
 # @ stub nvmlDeviceGetMigDeviceHandleByIndex
 # @ stub nvmlDeviceGetMigMode
-# @ stub nvmlDeviceGetMinorNumber
+@ cdecl nvmlDeviceGetMinorNumber(ptr ptr)
 # @ stub nvmlDeviceGetMultiGpuBoard
 @ cdecl nvmlDeviceGetName(ptr str long)
 # @ stub nvmlDeviceGetNvLinkCapability
@@ -109,7 +109,7 @@
 # @ stub nvmlDeviceGetPcieReplayCounter
 # @ stub nvmlDeviceGetPcieThroughput
 @ cdecl nvmlDeviceGetPerformanceState(ptr ptr)
-# @ stub nvmlDeviceGetPersistenceMode
+@ cdecl nvmlDeviceGetPersistenceMode(ptr ptr)
 # @ stub nvmlDeviceGetPgpuMetadataString
 # @ stub nvmlDeviceGetPowerManagementDefaultLimit
 # @ stub nvmlDeviceGetPowerManagementLimit
@@ -161,7 +161,7 @@
 # @ stub nvmlDeviceSetApplicationsClocks
 # @ stub nvmlDeviceSetAutoBoostedClocksEnabled
 @ cdecl nvmlDeviceSetComputeMode(ptr long)
-# @ stub nvmlDeviceSetCpuAffinity
+@ cdecl nvmlDeviceSetCpuAffinity(ptr)
 # @ stub nvmlDeviceSetDefaultAutoBoostedClocksEnabled
 @ cdecl nvmlDeviceSetDriverModel(ptr long long)
 # @ stub nvmlDeviceSetEccMode
@@ -170,7 +170,7 @@
 # @ stub nvmlDeviceSetMemoryLockedClocks
 # @ stub nvmlDeviceSetMigMode
 # @ stub nvmlDeviceSetNvLinkUtilizationControl
-# @ stub nvmlDeviceSetPersistenceMode
+@ cdecl nvmlDeviceSetPersistenceMode(ptr long)
 # @ stub nvmlDeviceSetPowerManagementLimit
 # @ stub nvmlDeviceSetTemperatureThreshold
 # @ stub nvmlDeviceSetVirtualizationMode

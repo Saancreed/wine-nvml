@@ -134,6 +134,16 @@ nvmlReturn_t __cdecl nvmlSystemGetNVMLVersion(char *version, unsigned int length
     return pnvmlSystemGetNVMLVersion(version, length);
 }
 
+nvmlReturn_t __cdecl nvmlDeviceClearCpuAffinity(nvmlDevice_t device)
+{
+    TRACE("(%p)\n", device);
+
+    unsigned int index;
+    nvmlReturn_t ret = nvmlDeviceGetIndex(device, &index);
+
+    return ret == NVML_SUCCESS ? NVML_ERROR_NOT_SUPPORTED : ret;
+}
+
 nvmlReturn_t __cdecl nvmlDeviceGetClock(nvmlDevice_t device, nvmlClockType_t clockType, nvmlClockId_t clockId, unsigned int *clockMHz)
 {
     TRACE("(%p, %u, %u, %p)\n", device, clockType, clockId, clockMHz);
@@ -156,6 +166,30 @@ nvmlReturn_t __cdecl nvmlDeviceGetCount_v2(unsigned int *deviceCount)
     return pnvmlDeviceGetCount_v2
         ? pnvmlDeviceGetCount_v2(deviceCount)
         : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceGetCpuAffinity(nvmlDevice_t device, unsigned int cpuSetSize, unsigned long *cpuSet)
+{
+    TRACE("(%p, %u, %p)\n", device, cpuSetSize, cpuSet);
+
+    if (!cpuSetSize || !cpuSet) return NVML_ERROR_INVALID_ARGUMENT;
+
+    unsigned int index;
+    nvmlReturn_t ret = nvmlDeviceGetIndex(device, &index);
+
+    return ret == NVML_SUCCESS ? NVML_ERROR_NOT_SUPPORTED : ret;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceGetCpuAffinityWithinScope(nvmlDevice_t device, unsigned int cpuSetSize, unsigned long *cpuSet, nvmlAffinityScope_t scope)
+{
+    TRACE("(%p, %u, %p, %u)\n", device, cpuSetSize, cpuSet, scope);
+
+    if (!cpuSetSize || !cpuSet || (scope != NVML_AFFINITY_SCOPE_NODE && scope != NVML_AFFINITY_SCOPE_SOCKET)) return NVML_ERROR_INVALID_ARGUMENT;
+
+    unsigned int index;
+    nvmlReturn_t ret = nvmlDeviceGetIndex(device, &index);
+
+    return ret == NVML_SUCCESS ? NVML_ERROR_NOT_SUPPORTED : ret;
 }
 
 nvmlReturn_t __cdecl nvmlDeviceGetCurrPcieLinkWidth(nvmlDevice_t device, unsigned int *currLinkWidth)
@@ -280,12 +314,36 @@ nvmlReturn_t __cdecl nvmlDeviceGetIndex(nvmlDevice_t device, unsigned int *index
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
+nvmlReturn_t __cdecl nvmlDeviceGetMemoryAffinity(nvmlDevice_t device, unsigned int nodeSetSize, unsigned long *nodeSet, nvmlAffinityScope_t scope)
+{
+    TRACE("(%p, %u, %p, %u)\n", device, nodeSetSize, nodeSet, scope);
+
+    if (!nodeSetSize || !nodeSet || (scope != NVML_AFFINITY_SCOPE_NODE && scope != NVML_AFFINITY_SCOPE_SOCKET)) return NVML_ERROR_INVALID_ARGUMENT;
+
+    unsigned int index;
+    nvmlReturn_t ret = nvmlDeviceGetIndex(device, &index);
+
+    return ret == NVML_SUCCESS ? NVML_ERROR_NOT_SUPPORTED : ret;
+}
+
 nvmlReturn_t __cdecl nvmlDeviceGetMemoryInfo(nvmlDevice_t device, nvmlMemory_t *memory)
 {
     TRACE("(%p, %p)\n", device, memory);
     return pnvmlDeviceGetMemoryInfo
         ? pnvmlDeviceGetMemoryInfo(device, memory)
         : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceGetMinorNumber(nvmlDevice_t device, unsigned int *minorNumber)
+{
+    TRACE("(%p, %p)\n", device, minorNumber);
+
+    if (!minorNumber) return NVML_ERROR_INVALID_ARGUMENT;
+
+    unsigned int index;
+    nvmlReturn_t ret = nvmlDeviceGetIndex(device, &index);
+
+    return ret == NVML_SUCCESS ? NVML_ERROR_NOT_SUPPORTED : ret;
 }
 
 nvmlReturn_t __cdecl nvmlDeviceGetName(nvmlDevice_t device, char *name, unsigned int length)
@@ -326,6 +384,18 @@ nvmlReturn_t __cdecl nvmlDeviceGetPerformanceState(nvmlDevice_t device, nvmlPsta
     return pnvmlDeviceGetPerformanceState
         ? pnvmlDeviceGetPerformanceState(device, pState)
         : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceGetPersistenceMode(nvmlDevice_t device, nvmlEnableState_t *mode)
+{
+    TRACE("(%p, %p)\n", device, mode);
+
+    if (!mode) return NVML_ERROR_INVALID_ARGUMENT;
+
+    unsigned int index;
+    nvmlReturn_t ret = nvmlDeviceGetIndex(device, &index);
+
+    return ret == NVML_SUCCESS ? NVML_ERROR_NOT_SUPPORTED : ret;
 }
 
 nvmlReturn_t __cdecl nvmlDeviceGetPowerUsage(nvmlDevice_t device, unsigned int *power)
@@ -392,11 +462,33 @@ nvmlReturn_t __cdecl nvmlDeviceSetComputeMode(nvmlDevice_t device, nvmlComputeMo
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
+nvmlReturn_t __cdecl nvmlDeviceSetCpuAffinity(nvmlDevice_t device)
+{
+    TRACE("(%p)\n", device);
+
+    unsigned int index;
+    nvmlReturn_t ret = nvmlDeviceGetIndex(device, &index);
+
+    return ret == NVML_SUCCESS ? NVML_ERROR_NOT_SUPPORTED : ret;
+}
+
 nvmlReturn_t __cdecl nvmlDeviceSetDriverModel(nvmlDevice_t device, nvmlDriverModel_t driverModel, unsigned int flags)
 {
     TRACE("(%p, %u, %u)\n", device, driverModel, flags);
 
     if (driverModel != NVML_DRIVER_WDDM && driverModel != NVML_DRIVER_WDM) return NVML_ERROR_INVALID_ARGUMENT;
+
+    unsigned int index;
+    nvmlReturn_t ret = nvmlDeviceGetIndex(device, &index);
+
+    return ret == NVML_SUCCESS ? NVML_ERROR_NOT_SUPPORTED : ret;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceSetPersistenceMode(nvmlDevice_t device, nvmlEnableState_t mode)
+{
+    TRACE("(%p, %u)\n", device, mode);
+
+    if (!mode) return NVML_ERROR_INVALID_ARGUMENT;
 
     unsigned int index;
     nvmlReturn_t ret = nvmlDeviceGetIndex(device, &index);
