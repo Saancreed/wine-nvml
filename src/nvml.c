@@ -54,6 +54,8 @@ static nvmlReturn_t (*pnvmlDeviceGetComputeMode)(nvmlDevice_t device, nvmlComput
 static nvmlReturn_t (*pnvmlDeviceGetCount_v2)(unsigned int *deviceCount) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetCurrPcieLinkWidth)(nvmlDevice_t device, unsigned int *currLinkWidth) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetCurrentClocksThrottleReasons)(nvmlDevice_t device, unsigned long long *clocksThrottleReasons) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetDecoderUtilization)(nvmlDevice_t device, unsigned int *utilization, unsigned int *samplingPeriodUs) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetEncoderUtilization)(nvmlDevice_t device, unsigned int *utilization, unsigned int *samplingPeriodUs) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetEnforcedPowerLimit)(nvmlDevice_t device, unsigned int *limit) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetFanSpeed_v2)(nvmlDevice_t device, unsigned int fan, unsigned int *speed) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetHandleByIndex)(unsigned int index, nvmlDevice_t *device) = NULL;
@@ -169,6 +171,22 @@ nvmlReturn_t __cdecl nvmlDeviceGetCurrentClocksThrottleReasons(nvmlDevice_t devi
     TRACE("(%p, %p)\n", device, clocksThrottleReasons);
     return pnvmlDeviceGetCurrentClocksThrottleReasons
         ? pnvmlDeviceGetCurrentClocksThrottleReasons(device, clocksThrottleReasons)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceGetDecoderUtilization(nvmlDevice_t device, unsigned int *utilization, unsigned int *samplingPeriodUs)
+{
+    TRACE("(%p, %p, %p)\n", device, utilization, samplingPeriodUs);
+    return pnvmlDeviceGetDecoderUtilization
+        ? pnvmlDeviceGetDecoderUtilization(device, utilization, samplingPeriodUs)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceGetEncoderUtilization(nvmlDevice_t device, unsigned int *utilization, unsigned int *samplingPeriodUs)
+{
+    TRACE("(%p, %p, %p)\n", device, utilization, samplingPeriodUs);
+    return pnvmlDeviceGetEncoderUtilization
+        ? pnvmlDeviceGetEncoderUtilization(device, utilization, samplingPeriodUs)
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
@@ -384,6 +402,8 @@ static BOOL load_nvml(void)
     TRY_LOAD_FUNCPTR(nvmlDeviceGetCount_v2);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetCurrPcieLinkWidth);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetCurrentClocksThrottleReasons);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetDecoderUtilization);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetEncoderUtilization);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetEnforcedPowerLimit);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetFanSpeed_v2);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetHandleByIndex);

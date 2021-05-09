@@ -39,7 +39,7 @@
 # @ stub nvmlDeviceGetCurrPcieLinkGeneration
 @ cdecl nvmlDeviceGetCurrPcieLinkWidth(ptr ptr)
 @ cdecl nvmlDeviceGetCurrentClocksThrottleReasons(ptr ptr)
-# @ stub nvmlDeviceGetDecoderUtilization
+@ cdecl nvmlDeviceGetDecoderUtilization(ptr ptr ptr)
 # @ stub nvmlDeviceGetDefaultApplicationsClock
 # @ stub nvmlDeviceGetDetailedEccErrors
 # @ stub nvmlDeviceGetDeviceHandleFromMigDeviceHandle
@@ -50,7 +50,7 @@
 # @ stub nvmlDeviceGetEncoderCapacity
 # @ stub nvmlDeviceGetEncoderSessions
 # @ stub nvmlDeviceGetEncoderStats
-# @ stub nvmlDeviceGetEncoderUtilization
+@ cdecl nvmlDeviceGetEncoderUtilization(ptr ptr ptr)
 @ cdecl nvmlDeviceGetEnforcedPowerLimit(ptr ptr)
 # @ stub nvmlDeviceGetFBCSessions
 # @ stub nvmlDeviceGetFBCStats
