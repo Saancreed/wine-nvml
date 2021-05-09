@@ -442,6 +442,34 @@ nvmlReturn_t __cdecl nvmlDeviceGetTemperatureThreshold(nvmlDevice_t device, nvml
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
+nvmlReturn_t __cdecl nvmlDeviceGetTopologyCommonAncestor(nvmlDevice_t device1, nvmlDevice_t device2, nvmlGpuTopologyLevel_t *pathInfo)
+{
+    TRACE("(%p, %p, %p)\n", device1, device2, pathInfo);
+    return NVML_ERROR_NOT_SUPPORTED;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceGetTopologyNearestGpus(nvmlDevice_t device, nvmlGpuTopologyLevel_t level, unsigned int *count, nvmlDevice_t *deviceArray)
+{
+    TRACE("(%p, %u, %p, %p)\n", device, level, count, deviceArray);
+
+    if (level != NVML_TOPOLOGY_INTERNAL &&
+        level != NVML_TOPOLOGY_SINGLE &&
+        level != NVML_TOPOLOGY_MULTIPLE &&
+        level != NVML_TOPOLOGY_HOSTBRIDGE &&
+        level != NVML_TOPOLOGY_NODE &&
+        level != NVML_TOPOLOGY_SYSTEM)
+    {
+        return NVML_ERROR_INVALID_ARGUMENT;
+    }
+
+    if (!count || (*count && !deviceArray)) return NVML_ERROR_INVALID_ARGUMENT;
+
+    unsigned int index;
+    nvmlReturn_t ret = nvmlDeviceGetIndex(device, &index);
+
+    return ret == NVML_SUCCESS ? NVML_ERROR_NOT_SUPPORTED : ret;
+}
+
 nvmlReturn_t __cdecl nvmlDeviceGetUUID(nvmlDevice_t device, char *uuid, unsigned int length)
 {
     TRACE("(%p, %p, %u)\n", device, uuid, length);
@@ -540,6 +568,18 @@ nvmlReturn_t __cdecl nvmlDeviceSetPersistenceMode(nvmlDevice_t device, nvmlEnabl
 
     unsigned int index;
     nvmlReturn_t ret = nvmlDeviceGetIndex(device, &index);
+
+    return ret == NVML_SUCCESS ? NVML_ERROR_NOT_SUPPORTED : ret;
+}
+
+nvmlReturn_t __cdecl nvmlSystemGetTopologyGpuSet(unsigned int cpuNumber, unsigned int *count, nvmlDevice_t *deviceArray)
+{
+    TRACE("(%u, %p, %p)\n", cpuNumber, count, deviceArray);
+
+    if (!count || (*count && !deviceArray)) return NVML_ERROR_INVALID_ARGUMENT;
+
+    unsigned int deviceCount;
+    nvmlReturn_t ret = nvmlDeviceGetCount_v2(&deviceCount);
 
     return ret == NVML_SUCCESS ? NVML_ERROR_NOT_SUPPORTED : ret;
 }

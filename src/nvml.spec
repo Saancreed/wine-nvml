@@ -132,8 +132,8 @@
 # @ stub nvmlDeviceGetSupportedVgpus
 @ cdecl nvmlDeviceGetTemperature(ptr long ptr)
 @ cdecl nvmlDeviceGetTemperatureThreshold(ptr long ptr)
-# @ stub nvmlDeviceGetTopologyCommonAncestor
-# @ stub nvmlDeviceGetTopologyNearestGpus
+@ cdecl nvmlDeviceGetTopologyCommonAncestor(ptr ptr ptr)
+@ cdecl nvmlDeviceGetTopologyNearestGpus(ptr long ptr ptr)
 # @ stub nvmlDeviceGetTotalEccErrors
 # @ stub nvmlDeviceGetTotalEnergyConsumption
 @ cdecl nvmlDeviceGetUUID(ptr str long)
@@ -205,7 +205,7 @@
 # @ stub nvmlSystemGetHicVersion
 @ cdecl nvmlSystemGetNVMLVersion(str long)
 # @ stub nvmlSystemGetProcessName
-# @ stub nvmlSystemGetTopologyGpuSet
+@ cdecl nvmlSystemGetTopologyGpuSet(long ptr ptr)
 # @ stub nvmlUnitGetCount
 # @ stub nvmlUnitGetDevices
 # @ stub nvmlUnitGetFanSpeedInfo
