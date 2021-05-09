@@ -126,7 +126,7 @@
 # @ stub nvmlDeviceGetSamples
 @ cdecl nvmlDeviceGetSerial(ptr str long)
 # @ stub nvmlDeviceGetSupportedClocksThrottleReasons
-# @ stub nvmlDeviceGetSupportedEventTypes
+@ cdecl nvmlDeviceGetSupportedEventTypes(ptr ptr)
 # @ stub nvmlDeviceGetSupportedGraphicsClocks
 # @ stub nvmlDeviceGetSupportedMemoryClocks
 # @ stub nvmlDeviceGetSupportedVgpus
@@ -148,7 +148,7 @@
 @ cdecl nvmlDeviceModifyDrainState(ptr long)
 # @ stub nvmlDeviceOnSameBoard
 @ cdecl nvmlDeviceQueryDrainState(ptr ptr)
-# @ stub nvmlDeviceRegisterEvents
+@ cdecl nvmlDeviceRegisterEvents(ptr int64 ptr)
 # @ stub nvmlDeviceRemoveGpu
 @ cdecl nvmlDeviceRemoveGpu_v2(ptr long long)
 # @ stub nvmlDeviceResetApplicationsClocks
@@ -176,10 +176,10 @@
 # @ stub nvmlDeviceSetVirtualizationMode
 # @ stub nvmlDeviceValidateInforom
 @ cdecl nvmlErrorString(long)
-# @ stub nvmlEventSetCreate
-# @ stub nvmlEventSetFree
+@ cdecl nvmlEventSetCreate(ptr)
+@ cdecl nvmlEventSetFree(ptr)
 # @ stub nvmlEventSetWait
-# @ stub nvmlEventSetWait_v2
+@ cdecl nvmlEventSetWait_v2(ptr ptr long)
 # @ stub nvmlGetBlacklistDeviceCount
 # @ stub nvmlGetBlacklistDeviceInfoByIndex
 # @ stub nvmlGetExcludedDeviceCount

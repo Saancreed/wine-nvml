@@ -73,12 +73,17 @@ static nvmlReturn_t (*pnvmlDeviceGetPciInfo_v3)(nvmlDevice_t device, nvmlPciInfo
 static nvmlReturn_t (*pnvmlDeviceGetPerformanceState)(nvmlDevice_t device, nvmlPstates_t *pState) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetPowerUsage)(nvmlDevice_t device, unsigned int *power) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetSerial)(nvmlDevice_t device, char *serial, unsigned int length) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetSupportedEventTypes)(nvmlDevice_t device, unsigned long long *eventTypes) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetTemperature)(nvmlDevice_t device, nvmlTemperatureSensors_t sensorType, unsigned int *temp) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetTemperatureThreshold)(nvmlDevice_t device, nvmlTemperatureThresholds_t thresholdType, unsigned int *temp) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetUUID)(nvmlDevice_t device, char *uuid, unsigned int length) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetUtilizationRates)(nvmlDevice_t device, nvmlUtilization_t *utilization) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetVbiosVersion)(nvmlDevice_t device, char *version, unsigned int length) = NULL;
+static nvmlReturn_t (*pnvmlDeviceRegisterEvents)(nvmlDevice_t device, unsigned long long eventTypes, nvmlEventSet_t set) = NULL;
 static nvmlReturn_t (*pnvmlDeviceSetComputeMode)(nvmlDevice_t device, nvmlComputeMode_t mode) = NULL;
+static nvmlReturn_t (*pnvmlEventSetCreate)(nvmlEventSet_t *set) = NULL;
+static nvmlReturn_t (*pnvmlEventSetFree)(nvmlEventSet_t set) = NULL;
+static nvmlReturn_t (*pnvmlEventSetWait_v2)(nvmlEventSet_t set, nvmlEventData_t * data, unsigned int timeoutms) = NULL;
 
 const char* __cdecl nvmlErrorString(nvmlReturn_t result)
 {
@@ -426,6 +431,14 @@ nvmlReturn_t __cdecl nvmlDeviceGetSerial(nvmlDevice_t device, char *serial, unsi
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
+nvmlReturn_t __cdecl nvmlDeviceGetSupportedEventTypes(nvmlDevice_t device, unsigned long long *eventTypes)
+{
+    WARN("(%p, %p): using Linux behavior\n", device, eventTypes);
+    return pnvmlDeviceGetSupportedEventTypes
+        ? pnvmlDeviceGetSupportedEventTypes(device, eventTypes)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
 nvmlReturn_t __cdecl nvmlDeviceGetTemperature(nvmlDevice_t device, nvmlTemperatureSensors_t sensorType, unsigned int *temp)
 {
     TRACE("(%p, %u, %p)\n", device, sensorType, temp);
@@ -518,6 +531,14 @@ nvmlReturn_t __cdecl nvmlDeviceQueryDrainState(nvmlPciInfo_t *pciInfo, nvmlEnabl
     return ret == NVML_SUCCESS ? NVML_ERROR_NOT_SUPPORTED : ret;
 }
 
+nvmlReturn_t __cdecl nvmlDeviceRegisterEvents(nvmlDevice_t device, unsigned long long eventTypes, nvmlEventSet_t set)
+{
+    WARN("(%p, %llu, %p): using Linux behavior\n", device, eventTypes, set);
+    return pnvmlDeviceRegisterEvents
+        ? pnvmlDeviceRegisterEvents(device, eventTypes, set)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
 nvmlReturn_t __cdecl nvmlDeviceRemoveGpu_v2(nvmlPciInfo_t *pciInfo, nvmlDetachGpuState_t gpuState, nvmlPcieLinkState_t linkState)
 {
     TRACE("(%p, %u, %u)\n", pciInfo, gpuState, linkState);
@@ -570,6 +591,30 @@ nvmlReturn_t __cdecl nvmlDeviceSetPersistenceMode(nvmlDevice_t device, nvmlEnabl
     nvmlReturn_t ret = nvmlDeviceGetIndex(device, &index);
 
     return ret == NVML_SUCCESS ? NVML_ERROR_NOT_SUPPORTED : ret;
+}
+
+nvmlReturn_t __cdecl nvmlEventSetCreate(nvmlEventSet_t *set)
+{
+    TRACE("(%p)\n", set);
+    return pnvmlEventSetCreate
+        ? pnvmlEventSetCreate(set)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t __cdecl nvmlEventSetFree(nvmlEventSet_t set)
+{
+    TRACE("(%p)\n", set);
+    return pnvmlEventSetFree
+        ? pnvmlEventSetFree(set)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t __cdecl nvmlEventSetWait_v2(nvmlEventSet_t set, nvmlEventData_t * data, unsigned int timeoutms)
+{
+    WARN("(%p, %p, %u): using Linux behavior\n", set, data, timeoutms);
+    return pnvmlEventSetWait_v2
+        ? pnvmlEventSetWait_v2(set, data, timeoutms)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
 nvmlReturn_t __cdecl nvmlSystemGetTopologyGpuSet(unsigned int cpuNumber, unsigned int *count, nvmlDevice_t *deviceArray)
@@ -631,12 +676,17 @@ static BOOL load_nvml(void)
     TRY_LOAD_FUNCPTR(nvmlDeviceGetPerformanceState);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetPowerUsage);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetSerial);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetSupportedEventTypes);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetTemperature);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetTemperatureThreshold);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetUUID);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetUtilizationRates);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetVbiosVersion);
+    TRY_LOAD_FUNCPTR(nvmlDeviceRegisterEvents);
     TRY_LOAD_FUNCPTR(nvmlDeviceSetComputeMode);
+    TRY_LOAD_FUNCPTR(nvmlEventSetCreate);
+    TRY_LOAD_FUNCPTR(nvmlEventSetFree);
+    TRY_LOAD_FUNCPTR(nvmlEventSetWait_v2);
 
     #undef TRY_LOAD_FUNCPTR
 
