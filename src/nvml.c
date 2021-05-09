@@ -96,6 +96,12 @@ nvmlReturn_t __cdecl nvmlInit_v2(void)
     return pnvmlInit_v2();
 }
 
+nvmlReturn_t __cdecl nvmlInternalGetExportTable(size_t *exportTable, GUID *guid)
+{
+    FIXME("(%p, %s): stub\n", exportTable, debugstr_guid(guid));
+    return NVML_ERROR_INVALID_ARGUMENT;
+}
+
 nvmlReturn_t __cdecl nvmlShutdown(void)
 {
     TRACE("()\n");

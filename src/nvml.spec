@@ -196,7 +196,7 @@
 # @ stub nvmlInit
 @ cdecl nvmlInitWithFlags(long)
 @ cdecl nvmlInit_v2()
-# @ stub nvmlInternalGetExportTable
+@ cdecl nvmlInternalGetExportTable(ptr ptr)
 # @ stub nvmlSetVgpuVersion
 @ cdecl nvmlShutdown()
 @ cdecl nvmlSystemGetCudaDriverVersion(ptr)
