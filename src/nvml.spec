@@ -6,7 +6,7 @@
 # @ stub nvmlDeviceClearEccErrorCounts
 # @ stub nvmlDeviceCreateGpuInstance
 # @ stub nvmlDeviceCreateGpuInstanceWithPlacement
-# @ stub nvmlDeviceDiscoverGpus
+@ cdecl nvmlDeviceDiscoverGpus(ptr)
 # @ stub nvmlDeviceFreezeNvLinkUtilizationCounter
 # @ stub nvmlDeviceGetAPIRestriction
 # @ stub nvmlDeviceGetAccountingBufferSize
@@ -145,12 +145,12 @@
 # @ stub nvmlDeviceGetViolationStatus
 # @ stub nvmlDeviceGetVirtualizationMode
 # @ stub nvmlDeviceIsMigDeviceHandle
-# @ stub nvmlDeviceModifyDrainState
+@ cdecl nvmlDeviceModifyDrainState(ptr long)
 # @ stub nvmlDeviceOnSameBoard
-# @ stub nvmlDeviceQueryDrainState
+@ cdecl nvmlDeviceQueryDrainState(ptr ptr)
 # @ stub nvmlDeviceRegisterEvents
 # @ stub nvmlDeviceRemoveGpu
-# @ stub nvmlDeviceRemoveGpu_v2
+@ cdecl nvmlDeviceRemoveGpu_v2(ptr long long)
 # @ stub nvmlDeviceResetApplicationsClocks
 # @ stub nvmlDeviceResetGpuLockedClocks
 # @ stub nvmlDeviceResetMemoryLockedClocks

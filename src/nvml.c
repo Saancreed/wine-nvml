@@ -144,6 +144,18 @@ nvmlReturn_t __cdecl nvmlDeviceClearCpuAffinity(nvmlDevice_t device)
     return ret == NVML_SUCCESS ? NVML_ERROR_NOT_SUPPORTED : ret;
 }
 
+nvmlReturn_t __cdecl nvmlDeviceDiscoverGpus(nvmlPciInfo_t *pciInfo)
+{
+    TRACE("(%p)\n", pciInfo);
+
+    if (!pciInfo) return NVML_ERROR_INVALID_ARGUMENT;
+
+    unsigned int deviceCount;
+    nvmlReturn_t ret = nvmlDeviceGetCount_v2(&deviceCount);
+
+    return ret == NVML_SUCCESS ? NVML_ERROR_NOT_SUPPORTED : ret;
+}
+
 nvmlReturn_t __cdecl nvmlDeviceGetClock(nvmlDevice_t device, nvmlClockType_t clockType, nvmlClockId_t clockId, unsigned int *clockMHz)
 {
     TRACE("(%p, %u, %u, %p)\n", device, clockType, clockId, clockMHz);
@@ -452,6 +464,42 @@ nvmlReturn_t __cdecl nvmlDeviceGetVbiosVersion(nvmlDevice_t device, char *versio
     return pnvmlDeviceGetVbiosVersion
         ? pnvmlDeviceGetVbiosVersion(device, version, length)
         : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceModifyDrainState(nvmlPciInfo_t *pciInfo, nvmlEnableState_t newState)
+{
+    TRACE("(%p, %u)\n", pciInfo, newState);
+
+    if (!pciInfo || (newState != NVML_FEATURE_ENABLED && newState != NVML_FEATURE_DISABLED)) return NVML_ERROR_INVALID_ARGUMENT;
+
+    unsigned int deviceCount;
+    nvmlReturn_t ret = nvmlDeviceGetCount_v2(&deviceCount);
+
+    return ret == NVML_SUCCESS ? NVML_ERROR_NOT_SUPPORTED : ret;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceQueryDrainState(nvmlPciInfo_t *pciInfo, nvmlEnableState_t *currentState)
+{
+    TRACE("(%p, %p)\n", pciInfo, currentState);
+
+    if (!pciInfo || !currentState) return NVML_ERROR_INVALID_ARGUMENT;
+
+    unsigned int deviceCount;
+    nvmlReturn_t ret = nvmlDeviceGetCount_v2(&deviceCount);
+
+    return ret == NVML_SUCCESS ? NVML_ERROR_NOT_SUPPORTED : ret;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceRemoveGpu_v2(nvmlPciInfo_t *pciInfo, nvmlDetachGpuState_t gpuState, nvmlPcieLinkState_t linkState)
+{
+    TRACE("(%p, %u, %u)\n", pciInfo, gpuState, linkState);
+
+    if (!pciInfo || (gpuState != NVML_DETACH_GPU_KEEP && gpuState != NVML_DETACH_GPU_REMOVE) || (linkState != NVML_PCIE_LINK_KEEP && linkState != NVML_PCIE_LINK_SHUT_DOWN)) return NVML_ERROR_INVALID_ARGUMENT;
+
+    unsigned int deviceCount;
+    nvmlReturn_t ret = nvmlDeviceGetCount_v2(&deviceCount);
+
+    return ret == NVML_SUCCESS ? NVML_ERROR_NOT_SUPPORTED : ret;
 }
 
 nvmlReturn_t __cdecl nvmlDeviceSetComputeMode(nvmlDevice_t device, nvmlComputeMode_t mode)
