@@ -1,5 +1,5 @@
 pkgname=wine-nvml
-pkgver=r9.95ab169
+pkgver=r31.d2f8264
 pkgrel=1
 pkgdesc='NVIDIA Management Library wrapper for Wine'
 arch=('x86_64')
@@ -36,29 +36,29 @@ build()
 {
     cd "${srcdir}/wine-nvml"
 
-    meson setup ../build-wine64 \
+    meson setup ../build64 \
         --cross-file ./build-wine64.txt \
         --prefix /usr \
         --libdir lib \
         --buildtype release \
         --strip
 
-    ninja -C ../build-wine64
+    ninja -C ../build64
 
-    meson setup ../build-wine32 \
+    meson setup ../build32 \
         --cross-file ./build-wine32.txt \
         --prefix /usr \
         --libdir lib32 \
         --buildtype release \
         --strip
 
-    ninja -C ../build-wine32
+    ninja -C ../build32
 }
 
 package()
 {
     depends=('lib32-nvidia-utils' 'nvidia-utils' 'wine')
 
-    DESTDIR="${pkgdir}" ninja -C "${srcdir}/build-wine64" install
-    DESTDIR="${pkgdir}" ninja -C "${srcdir}/build-wine32" install
+    DESTDIR="${pkgdir}" ninja -C "${srcdir}/build64" install
+    DESTDIR="${pkgdir}" ninja -C "${srcdir}/build32" install
 }
