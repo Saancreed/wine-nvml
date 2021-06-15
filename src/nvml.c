@@ -117,6 +117,10 @@ static nvmlReturn_t (*pnvmlDeviceGetPcieReplayCounter)(nvmlDevice_t device, unsi
 static nvmlReturn_t (*pnvmlDeviceGetPcieThroughput)(nvmlDevice_t device, nvmlPcieUtilCounter_t counter, unsigned int *value) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetPerformanceState)(nvmlDevice_t device, nvmlPstates_t *pState) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetPgpuMetadataString)(nvmlDevice_t device, char *pgpuMetadata, unsigned int *bufferSize) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetPowerManagementDefaultLimit)(nvmlDevice_t device, unsigned int *defaultLimit) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetPowerManagementLimit)(nvmlDevice_t device, unsigned int *limit) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetPowerManagementLimitConstraints)(nvmlDevice_t device, unsigned int *minLimit, unsigned int *maxLimit) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetPowerManagementMode)(nvmlDevice_t device, nvmlEnableState_t *mode) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetPowerState)(nvmlDevice_t device, nvmlPstates_t *pState) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetPowerUsage)(nvmlDevice_t device, unsigned int *power) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetRemappedRows)(nvmlDevice_t device, unsigned int *corrRows, unsigned int *uncRows, unsigned int *isPending, unsigned int *failureOccurred) = NULL;
@@ -846,6 +850,38 @@ nvmlReturn_t __cdecl nvmlDeviceGetPgpuMetadataString(nvmlDevice_t device, char *
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
+nvmlReturn_t __cdecl nvmlDeviceGetPowerManagementDefaultLimit(nvmlDevice_t device, unsigned int *defaultLimit)
+{
+    TRACE("(%p, %p)\n", device, defaultLimit);
+    return pnvmlDeviceGetPowerManagementDefaultLimit
+        ? pnvmlDeviceGetPowerManagementDefaultLimit(device, defaultLimit)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceGetPowerManagementLimit(nvmlDevice_t device, unsigned int *limit)
+{
+    TRACE("(%p, %p)\n", device, limit);
+    return pnvmlDeviceGetPowerManagementLimit
+        ? pnvmlDeviceGetPowerManagementLimit(device, limit)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceGetPowerManagementLimitConstraints(nvmlDevice_t device, unsigned int *minLimit, unsigned int *maxLimit)
+{
+    TRACE("(%p, %p, %p)\n", device, minLimit, maxLimit);
+    return pnvmlDeviceGetPowerManagementLimitConstraints
+        ? pnvmlDeviceGetPowerManagementLimitConstraints(device, minLimit, maxLimit)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceGetPowerManagementMode(nvmlDevice_t device, nvmlEnableState_t *mode)
+{
+    TRACE("(%p, %p)\n", device, mode);
+    return pnvmlDeviceGetPowerManagementMode
+        ? pnvmlDeviceGetPowerManagementMode(device, mode)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
 nvmlReturn_t __cdecl nvmlDeviceGetPowerState(nvmlDevice_t device, nvmlPstates_t *pState)
 {
     TRACE("(%p, %p)\n", device, pState);
@@ -1286,6 +1322,10 @@ static BOOL load_nvml(void)
     TRY_LOAD_FUNCPTR(nvmlDeviceGetPcieThroughput);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetPerformanceState);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetPgpuMetadataString);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetPowerManagementDefaultLimit);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetPowerManagementLimit);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetPowerManagementLimitConstraints);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetPowerManagementMode);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetPowerState);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetPowerUsage);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetRemappedRows);

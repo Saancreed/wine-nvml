@@ -111,10 +111,10 @@
 @ cdecl nvmlDeviceGetPerformanceState(ptr ptr)
 @ cdecl nvmlDeviceGetPersistenceMode(ptr ptr)
 @ cdecl nvmlDeviceGetPgpuMetadataString(ptr ptr ptr)
-# @ stub nvmlDeviceGetPowerManagementDefaultLimit
-# @ stub nvmlDeviceGetPowerManagementLimit
-# @ stub nvmlDeviceGetPowerManagementLimitConstraints
-# @ stub nvmlDeviceGetPowerManagementMode
+@ cdecl nvmlDeviceGetPowerManagementDefaultLimit(ptr ptr)
+@ cdecl nvmlDeviceGetPowerManagementLimit(ptr ptr)
+@ cdecl nvmlDeviceGetPowerManagementLimitConstraints(ptr ptr ptr)
+@ cdecl nvmlDeviceGetPowerManagementMode(ptr ptr)
 @ cdecl nvmlDeviceGetPowerState(ptr ptr)
 @ cdecl nvmlDeviceGetPowerUsage(ptr ptr)
 # @ stub nvmlDeviceGetProcessUtilization
