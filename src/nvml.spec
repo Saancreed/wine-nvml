@@ -30,7 +30,7 @@
 @ cdecl nvmlDeviceGetComputeMode(ptr ptr)
 # @ stub nvmlDeviceGetComputeRunningProcesses
 # @ stub nvmlDeviceGetComputeRunningProcesses_v2
-# @ stub nvmlDeviceGetCount
+@ cdecl nvmlDeviceGetCount(ptr)
 @ cdecl nvmlDeviceGetCount_v2(ptr)
 @ cdecl nvmlDeviceGetCpuAffinity(ptr long ptr)
 @ cdecl nvmlDeviceGetCpuAffinityWithinScope(ptr long ptr long)
@@ -54,7 +54,7 @@
 @ cdecl nvmlDeviceGetEnforcedPowerLimit(ptr ptr)
 # @ stub nvmlDeviceGetFBCSessions
 @ cdecl nvmlDeviceGetFBCStats(ptr ptr)
-# @ stub nvmlDeviceGetFanSpeed
+@ cdecl nvmlDeviceGetFanSpeed(ptr ptr)
 @ cdecl nvmlDeviceGetFanSpeed_v2(ptr long ptr)
 @ cdecl nvmlDeviceGetFieldValues(ptr long ptr)
 # @ stub nvmlDeviceGetGpuInstanceById
@@ -66,8 +66,8 @@
 @ cdecl nvmlDeviceGetGpuOperationMode(ptr ptr ptr)
 # @ stub nvmlDeviceGetGraphicsRunningProcesses
 # @ stub nvmlDeviceGetGraphicsRunningProcesses_v2
-# @ stub nvmlDeviceGetGridLicensableFeatures
-# @ stub nvmlDeviceGetGridLicensableFeatures_v2
+@ cdecl nvmlDeviceGetGridLicensableFeatures(ptr ptr)
+@ cdecl nvmlDeviceGetGridLicensableFeatures_v2(ptr ptr)
 @ cdecl nvmlDeviceGetGridLicensableFeatures_v3(ptr ptr)
 @ cdecl nvmlDeviceGetHandleByIndex(long ptr)
 @ cdecl nvmlDeviceGetHandleByIndex_v2(long ptr)
@@ -149,7 +149,7 @@
 @ cdecl nvmlDeviceOnSameBoard(ptr ptr ptr)
 @ cdecl nvmlDeviceQueryDrainState(ptr ptr)
 @ cdecl nvmlDeviceRegisterEvents(ptr int64 ptr)
-# @ stub nvmlDeviceRemoveGpu
+@ cdecl nvmlDeviceRemoveGpu(ptr)
 @ cdecl nvmlDeviceRemoveGpu_v2(ptr long long)
 # @ stub nvmlDeviceResetApplicationsClocks
 # @ stub nvmlDeviceResetGpuLockedClocks
@@ -178,7 +178,7 @@
 @ cdecl nvmlErrorString(long)
 @ cdecl nvmlEventSetCreate(ptr)
 @ cdecl nvmlEventSetFree(ptr)
-# @ stub nvmlEventSetWait
+@ cdecl nvmlEventSetWait(ptr long long)
 @ cdecl nvmlEventSetWait_v2(ptr ptr long)
 # @ stub nvmlGetBlacklistDeviceCount
 # @ stub nvmlGetBlacklistDeviceInfoByIndex
@@ -193,7 +193,7 @@
 # @ stub nvmlGpuInstanceGetComputeInstanceRemainingCapacity
 # @ stub nvmlGpuInstanceGetComputeInstances
 # @ stub nvmlGpuInstanceGetInfo
-# @ stub nvmlInit
+@ cdecl nvmlInit()
 @ cdecl nvmlInitWithFlags(long)
 @ cdecl nvmlInit_v2()
 @ cdecl nvmlInternalGetExportTable(ptr ptr)

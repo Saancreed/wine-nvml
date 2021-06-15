@@ -41,6 +41,7 @@ WINE_DEFAULT_DEBUG_CHANNEL(nvml);
 static void *libnvidia_ml_handle = NULL;
 
 static const char* (*pnvmlErrorString)(nvmlReturn_t result) = NULL;
+static nvmlReturn_t (*pnvmlInit)(void) = NULL;
 static nvmlReturn_t (*pnvmlInitWithFlags)(unsigned int flags) = NULL;
 static nvmlReturn_t (*pnvmlInit_v2)(void) = NULL;
 static nvmlReturn_t (*pnvmlShutdown)(void) = NULL;
@@ -62,6 +63,7 @@ static nvmlReturn_t (*pnvmlDeviceGetBridgeChipInfo)(nvmlDevice_t device, nvmlBri
 static nvmlReturn_t (*pnvmlDeviceGetClock)(nvmlDevice_t device, nvmlClockType_t clockType, nvmlClockId_t clockId, unsigned int *clockMHz) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetClockInfo)(nvmlDevice_t device, nvmlClockType_t type, unsigned int *clock) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetComputeMode)(nvmlDevice_t device, nvmlComputeMode_t *mode) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetCount)(unsigned int *deviceCount) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetCount_v2)(unsigned int *deviceCount) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetCreatableVgpus)(nvmlDevice_t device, unsigned int *vgpuCount, nvmlVgpuTypeId_t *vgpuTypeIds) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetCudaComputeCapability)(nvmlDevice_t device, int *major, int *minor) = NULL;
@@ -79,9 +81,12 @@ static nvmlReturn_t (*pnvmlDeviceGetEncoderStats)(nvmlDevice_t device, unsigned 
 static nvmlReturn_t (*pnvmlDeviceGetEncoderUtilization)(nvmlDevice_t device, unsigned int *utilization, unsigned int *samplingPeriodUs) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetEnforcedPowerLimit)(nvmlDevice_t device, unsigned int *limit) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetFBCStats)(nvmlDevice_t device, nvmlFBCStats_t *fbcStats) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetFanSpeed)(nvmlDevice_t device, unsigned int *speed) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetFanSpeed_v2)(nvmlDevice_t device, unsigned int fan, unsigned int *speed) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetFieldValues)(nvmlDevice_t device, int valuesCount, nvmlFieldValue_t *values) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetGpuOperationMode)(nvmlDevice_t device, nvmlGpuOperationMode_t *current, nvmlGpuOperationMode_t *pending) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetGridLicensableFeatures)(nvmlDevice_t device, nvmlGridLicensableFeatures_t *pGridLicensableFeatures) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetGridLicensableFeatures_v2)(nvmlDevice_t device, nvmlGridLicensableFeatures_t *pGridLicensableFeatures) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetGridLicensableFeatures_v3)(nvmlDevice_t device, nvmlGridLicensableFeatures_t *pGridLicensableFeatures) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetHandleByIndex)(unsigned int index, nvmlDevice_t *device) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetHandleByIndex_v2)(unsigned int index, nvmlDevice_t *device) = NULL;
@@ -150,12 +155,19 @@ static nvmlReturn_t (*pnvmlDeviceRegisterEvents)(nvmlDevice_t device, unsigned l
 static nvmlReturn_t (*pnvmlDeviceSetComputeMode)(nvmlDevice_t device, nvmlComputeMode_t mode) = NULL;
 static nvmlReturn_t (*pnvmlEventSetCreate)(nvmlEventSet_t *set) = NULL;
 static nvmlReturn_t (*pnvmlEventSetFree)(nvmlEventSet_t set) = NULL;
+static nvmlReturn_t (*pnvmlEventSetWait)(nvmlEventSet_t set, nvmlEventData_t * data, unsigned int timeoutms) = NULL;
 static nvmlReturn_t (*pnvmlEventSetWait_v2)(nvmlEventSet_t set, nvmlEventData_t * data, unsigned int timeoutms) = NULL;
 
 const char* __cdecl nvmlErrorString(nvmlReturn_t result)
 {
     TRACE("(%u)\n", result);
     return pnvmlErrorString(result);
+}
+
+nvmlReturn_t __cdecl nvmlInit(void)
+{
+    TRACE("()\n");
+    return pnvmlInit();
 }
 
 nvmlReturn_t __cdecl nvmlInitWithFlags(unsigned int flags)
@@ -329,6 +341,14 @@ nvmlReturn_t __cdecl nvmlDeviceGetComputeMode(nvmlDevice_t device, nvmlComputeMo
     TRACE("(%p, %p)\n", device, mode);
     return pnvmlDeviceGetComputeMode
         ? pnvmlDeviceGetComputeMode(device, mode)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceGetCount(unsigned int *deviceCount)
+{
+    TRACE("(%p)\n", deviceCount);
+    return pnvmlDeviceGetCount
+        ? pnvmlDeviceGetCount(deviceCount)
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
@@ -510,6 +530,14 @@ nvmlReturn_t __cdecl nvmlDeviceGetFBCStats(nvmlDevice_t device, nvmlFBCStats_t *
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
+nvmlReturn_t __cdecl nvmlDeviceGetFanSpeed(nvmlDevice_t device, unsigned int *speed)
+{
+    TRACE("(%p, %p)\n", device, speed);
+    return pnvmlDeviceGetFanSpeed
+        ? pnvmlDeviceGetFanSpeed(device, speed)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
 nvmlReturn_t __cdecl nvmlDeviceGetFanSpeed_v2(nvmlDevice_t device, unsigned int fan, unsigned int *speed)
 {
     TRACE("(%p, %u, %p)\n", device, fan, speed);
@@ -531,6 +559,22 @@ nvmlReturn_t __cdecl nvmlDeviceGetGpuOperationMode(nvmlDevice_t device, nvmlGpuO
     TRACE("(%p, %p, %p)\n", device, current, pending);
     return pnvmlDeviceGetGpuOperationMode
         ? pnvmlDeviceGetGpuOperationMode(device, current, pending)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceGetGridLicensableFeatures(nvmlDevice_t device, nvmlGridLicensableFeatures_t *pGridLicensableFeatures)
+{
+    TRACE("(%p, %p)\n", device, pGridLicensableFeatures);
+    return pnvmlDeviceGetGridLicensableFeatures
+        ? pnvmlDeviceGetGridLicensableFeatures(device, pGridLicensableFeatures)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceGetGridLicensableFeatures_v2(nvmlDevice_t device, nvmlGridLicensableFeatures_t *pGridLicensableFeatures)
+{
+    TRACE("(%p, %p)\n", device, pGridLicensableFeatures);
+    return pnvmlDeviceGetGridLicensableFeatures_v2
+        ? pnvmlDeviceGetGridLicensableFeatures_v2(device, pGridLicensableFeatures)
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
@@ -1142,6 +1186,18 @@ nvmlReturn_t __cdecl nvmlDeviceRegisterEvents(nvmlDevice_t device, unsigned long
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
+nvmlReturn_t __cdecl nvmlDeviceRemoveGpu(nvmlPciInfo_t *pciInfo)
+{
+    TRACE("(%p)\n", pciInfo);
+
+    if (!pciInfo) return NVML_ERROR_INVALID_ARGUMENT;
+
+    unsigned int deviceCount;
+    nvmlReturn_t ret = nvmlDeviceGetCount_v2(&deviceCount);
+
+    return ret == NVML_SUCCESS ? NVML_ERROR_NOT_SUPPORTED : ret;
+}
+
 nvmlReturn_t __cdecl nvmlDeviceRemoveGpu_v2(nvmlPciInfo_t *pciInfo, nvmlDetachGpuState_t gpuState, nvmlPcieLinkState_t linkState)
 {
     TRACE("(%p, %u, %u)\n", pciInfo, gpuState, linkState);
@@ -1212,6 +1268,14 @@ nvmlReturn_t __cdecl nvmlEventSetFree(nvmlEventSet_t set)
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
+nvmlReturn_t __cdecl nvmlEventSetWait(nvmlEventSet_t set, nvmlEventData_t * data, unsigned int timeoutms)
+{
+    WARN("(%p, %p, %u): using Linux behavior\n", set, data, timeoutms);
+    return pnvmlEventSetWait
+        ? pnvmlEventSetWait(set, data, timeoutms)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
 nvmlReturn_t __cdecl nvmlEventSetWait_v2(nvmlEventSet_t set, nvmlEventData_t * data, unsigned int timeoutms)
 {
     WARN("(%p, %p, %u): using Linux behavior\n", set, data, timeoutms);
@@ -1243,6 +1307,7 @@ static BOOL load_nvml(void)
     #define LOAD_FUNCPTR(f) if (!(*(void **)(&p##f) = dlsym(libnvidia_ml_handle, #f))) { ERR("Can't find symbol %s.\n", #f); goto fail; }
 
     LOAD_FUNCPTR(nvmlErrorString);
+    LOAD_FUNCPTR(nvmlInit);
     LOAD_FUNCPTR(nvmlInitWithFlags);
     LOAD_FUNCPTR(nvmlInit_v2);
     LOAD_FUNCPTR(nvmlShutdown);
@@ -1267,6 +1332,7 @@ static BOOL load_nvml(void)
     TRY_LOAD_FUNCPTR(nvmlDeviceGetBridgeChipInfo);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetClock);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetComputeMode);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetCount);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetCount_v2);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetCreatableVgpus);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetCudaComputeCapability);
@@ -1283,10 +1349,13 @@ static BOOL load_nvml(void)
     TRY_LOAD_FUNCPTR(nvmlDeviceGetEncoderStats);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetEncoderUtilization);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetEnforcedPowerLimit);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetFanSpeed);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetFanSpeed_v2);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetFBCStats);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetFieldValues);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetGpuOperationMode);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetGridLicensableFeatures);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetGridLicensableFeatures_v2);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetGridLicensableFeatures_v3);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetHandleByIndex);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetHandleByIndex_v2);
@@ -1355,6 +1424,7 @@ static BOOL load_nvml(void)
     TRY_LOAD_FUNCPTR(nvmlDeviceSetComputeMode);
     TRY_LOAD_FUNCPTR(nvmlEventSetCreate);
     TRY_LOAD_FUNCPTR(nvmlEventSetFree);
+    TRY_LOAD_FUNCPTR(nvmlEventSetWait);
     TRY_LOAD_FUNCPTR(nvmlEventSetWait_v2);
 
     #undef TRY_LOAD_FUNCPTR
