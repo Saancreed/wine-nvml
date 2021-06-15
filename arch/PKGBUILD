@@ -1,5 +1,5 @@
 pkgname=wine-nvml
-pkgver=r31.d2f8264
+pkgver=r36.e36fd94
 pkgrel=1
 pkgdesc='NVIDIA Management Library wrapper for Wine'
 arch=('x86_64')
