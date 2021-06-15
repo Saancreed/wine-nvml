@@ -102,6 +102,13 @@ static nvmlReturn_t (*pnvmlDeviceGetMemoryInfo)(nvmlDevice_t device, nvmlMemory_
 static nvmlReturn_t (*pnvmlDeviceGetMigMode)(nvmlDevice_t device, unsigned int *currentMode, unsigned int *pendingMode) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetMultiGpuBoard)(nvmlDevice_t device, unsigned int *multiGpuBool) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetName)(nvmlDevice_t device, char *name, unsigned int length) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetNvLinkCapability)(nvmlDevice_t device, unsigned int link, nvmlNvLinkCapability_t capability, unsigned int *capResult) = NULL; 
+static nvmlReturn_t (*pnvmlDeviceGetNvLinkErrorCounter)(nvmlDevice_t device, unsigned int link, nvmlNvLinkErrorCounter_t counter, unsigned long long *counterValue) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetNvLinkRemotePciInfo_v2)(nvmlDevice_t device, unsigned int link, nvmlPciInfo_t *pci) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetNvLinkState)(nvmlDevice_t device, unsigned int link, nvmlEnableState_t *isActive) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetNvLinkUtilizationControl)(nvmlDevice_t device, unsigned int link, unsigned int counter, nvmlNvLinkUtilizationControl_t *control) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetNvLinkUtilizationCounter)(nvmlDevice_t device, unsigned int link, unsigned int counter,  unsigned long long *rxcounter, unsigned long long *txcounter) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetNvLinkVersion)(nvmlDevice_t device, unsigned int link, unsigned int *version) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetP2PStatus)(nvmlDevice_t device1, nvmlDevice_t device2, nvmlGpuP2PCapsIndex_t p2pIndex, nvmlGpuP2PStatus_t *p2pStatus) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetPciInfo)(nvmlDevice_t device, nvmlPciInfo_t *pci) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetPciInfo_v2)(nvmlDevice_t device, nvmlPciInfo_t *pci) = NULL;
@@ -707,6 +714,62 @@ nvmlReturn_t __cdecl nvmlDeviceGetName(nvmlDevice_t device, char *name, unsigned
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
+nvmlReturn_t __cdecl nvmlDeviceGetNvLinkCapability(nvmlDevice_t device, unsigned int link, nvmlNvLinkCapability_t capability, unsigned int *capResult)
+{
+    TRACE("(%p, %u, %u, %p)\n", device, link, capability, capResult);
+    return pnvmlDeviceGetNvLinkCapability
+        ? pnvmlDeviceGetNvLinkCapability(device, link, capability, capResult)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceGetNvLinkErrorCounter(nvmlDevice_t device, unsigned int link, nvmlNvLinkErrorCounter_t counter, unsigned long long *counterValue)
+{
+    TRACE("(%p, %u, %u, %p)\n", device, link, counter, counterValue);
+    return pnvmlDeviceGetNvLinkErrorCounter
+        ? pnvmlDeviceGetNvLinkErrorCounter(device, link, counter, counterValue)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceGetNvLinkRemotePciInfo_v2(nvmlDevice_t device, unsigned int link, nvmlPciInfo_t *pci)
+{
+    TRACE("(%p, %u, %p)\n", device, link, pci);
+    return pnvmlDeviceGetNvLinkRemotePciInfo_v2
+        ? pnvmlDeviceGetNvLinkRemotePciInfo_v2(device, link, pci)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceGetNvLinkState(nvmlDevice_t device, unsigned int link, nvmlEnableState_t *isActive)
+{
+    TRACE("(%p, %u, %p)\n", device, link, isActive);
+    return pnvmlDeviceGetNvLinkState
+        ? pnvmlDeviceGetNvLinkState(device, link, isActive)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceGetNvLinkUtilizationControl(nvmlDevice_t device, unsigned int link, unsigned int counter, nvmlNvLinkUtilizationControl_t *control)
+{
+    TRACE("(%p, %u, %u, %p)\n", device, link, counter, control);
+    return pnvmlDeviceGetNvLinkUtilizationControl
+        ? pnvmlDeviceGetNvLinkUtilizationControl(device, link, counter, control)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceGetNvLinkUtilizationCounter(nvmlDevice_t device, unsigned int link, unsigned int counter,  unsigned long long *rxcounter, unsigned long long *txcounter)
+{
+    TRACE("(%p, %u, %u, %p, %p)\n", device, link, counter, rxcounter, txcounter);
+    return pnvmlDeviceGetNvLinkUtilizationCounter
+        ? pnvmlDeviceGetNvLinkUtilizationCounter(device, link, counter, rxcounter, txcounter)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
+nvmlReturn_t __cdecl nvmlDeviceGetNvLinkVersion(nvmlDevice_t device, unsigned int link, unsigned int *version)
+{
+    TRACE("(%p, %u, %p)\n", device, link, version);
+    return pnvmlDeviceGetNvLinkVersion
+        ? pnvmlDeviceGetNvLinkVersion(device, link, version)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
 nvmlReturn_t __cdecl nvmlDeviceGetP2PStatus(nvmlDevice_t device1, nvmlDevice_t device2, nvmlGpuP2PCapsIndex_t p2pIndex, nvmlGpuP2PStatus_t *p2pStatus)
 {
     TRACE("(%p, %p, %u, %p)\n", device1, device2, p2pIndex, p2pStatus);
@@ -1208,6 +1271,13 @@ static BOOL load_nvml(void)
     TRY_LOAD_FUNCPTR(nvmlDeviceGetMigMode);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetMultiGpuBoard);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetName);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetNvLinkCapability);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetNvLinkErrorCounter);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetNvLinkRemotePciInfo_v2);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetNvLinkState);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetNvLinkUtilizationControl);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetNvLinkUtilizationCounter);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetNvLinkVersion);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetP2PStatus);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetPciInfo);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetPciInfo_v2);

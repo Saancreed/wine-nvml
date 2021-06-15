@@ -94,14 +94,14 @@
 @ cdecl nvmlDeviceGetMinorNumber(ptr ptr)
 @ cdecl nvmlDeviceGetMultiGpuBoard(ptr ptr)
 @ cdecl nvmlDeviceGetName(ptr str long)
-# @ stub nvmlDeviceGetNvLinkCapability
-# @ stub nvmlDeviceGetNvLinkErrorCounter
+@ cdecl nvmlDeviceGetNvLinkCapability(ptr long long ptr)
+@ cdecl nvmlDeviceGetNvLinkErrorCounter(ptr long long ptr)
 # @ stub nvmlDeviceGetNvLinkRemotePciInfo
-# @ stub nvmlDeviceGetNvLinkRemotePciInfo_v2
-# @ stub nvmlDeviceGetNvLinkState
-# @ stub nvmlDeviceGetNvLinkUtilizationControl
-# @ stub nvmlDeviceGetNvLinkUtilizationCounter
-# @ stub nvmlDeviceGetNvLinkVersion
+@ cdecl nvmlDeviceGetNvLinkRemotePciInfo_v2(ptr long ptr)
+@ cdecl nvmlDeviceGetNvLinkState(ptr long ptr)
+@ cdecl nvmlDeviceGetNvLinkUtilizationControl(ptr long long ptr)
+@ cdecl nvmlDeviceGetNvLinkUtilizationCounter(ptr long long ptr ptr)
+@ cdecl nvmlDeviceGetNvLinkVersion(ptr long ptr)
 @ cdecl nvmlDeviceGetP2PStatus(ptr ptr long ptr)
 @ cdecl nvmlDeviceGetPciInfo(ptr ptr)
 @ cdecl nvmlDeviceGetPciInfo_v2(ptr ptr)
