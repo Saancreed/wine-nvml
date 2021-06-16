@@ -1331,6 +1331,7 @@ static BOOL load_nvml(void)
     TRY_LOAD_FUNCPTR(nvmlDeviceGetBrand);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetBridgeChipInfo);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetClock);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetClockInfo);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetComputeMode);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetCount);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetCount_v2);
