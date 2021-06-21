@@ -93,7 +93,7 @@
 @ cdecl nvmlDeviceGetMigMode(ptr ptr ptr)
 @ cdecl nvmlDeviceGetMinorNumber(ptr ptr)
 @ cdecl nvmlDeviceGetMultiGpuBoard(ptr ptr)
-@ cdecl nvmlDeviceGetName(ptr str long)
+@ cdecl nvmlDeviceGetName(ptr ptr long)
 @ cdecl nvmlDeviceGetNvLinkCapability(ptr long long ptr)
 @ cdecl nvmlDeviceGetNvLinkErrorCounter(ptr long long ptr)
 # @ stub nvmlDeviceGetNvLinkRemotePciInfo
@@ -124,7 +124,7 @@
 @ cdecl nvmlDeviceGetRetiredPages_v2(ptr long ptr ptr ptr)
 @ cdecl nvmlDeviceGetRowRemapperHistogram(ptr ptr)
 @ cdecl nvmlDeviceGetSamples(ptr long int64 ptr ptr ptr)
-@ cdecl nvmlDeviceGetSerial(ptr str long)
+@ cdecl nvmlDeviceGetSerial(ptr ptr long)
 @ cdecl nvmlDeviceGetSupportedClocksThrottleReasons(ptr ptr)
 @ cdecl nvmlDeviceGetSupportedEventTypes(ptr ptr)
 @ cdecl nvmlDeviceGetSupportedGraphicsClocks(ptr long ptr ptr)
@@ -136,9 +136,9 @@
 @ cdecl nvmlDeviceGetTopologyNearestGpus(ptr long ptr ptr)
 @ cdecl nvmlDeviceGetTotalEccErrors(ptr long long ptr)
 @ cdecl nvmlDeviceGetTotalEnergyConsumption(ptr ptr)
-@ cdecl nvmlDeviceGetUUID(ptr str long)
+@ cdecl nvmlDeviceGetUUID(ptr ptr long)
 @ cdecl nvmlDeviceGetUtilizationRates(ptr ptr)
-@ cdecl nvmlDeviceGetVbiosVersion(ptr str long)
+@ cdecl nvmlDeviceGetVbiosVersion(ptr ptr long)
 # @ stub nvmlDeviceGetVgpuMetadata
 # @ stub nvmlDeviceGetVgpuProcessUtilization
 @ cdecl nvmlDeviceGetVgpuUtilization(ptr int64 ptr ptr ptr)
@@ -201,9 +201,9 @@
 @ cdecl nvmlShutdown()
 @ cdecl nvmlSystemGetCudaDriverVersion(ptr)
 @ cdecl nvmlSystemGetCudaDriverVersion_v2(ptr)
-@ cdecl nvmlSystemGetDriverVersion(str long)
+@ cdecl nvmlSystemGetDriverVersion(ptr long)
 # @ stub nvmlSystemGetHicVersion
-@ cdecl nvmlSystemGetNVMLVersion(str long)
+@ cdecl nvmlSystemGetNVMLVersion(ptr long)
 # @ stub nvmlSystemGetProcessName
 @ cdecl nvmlSystemGetTopologyGpuSet(long ptr ptr)
 # @ stub nvmlUnitGetCount
