@@ -28,14 +28,15 @@
 
 WINE_DEFAULT_DEBUG_CHANNEL(nvml);
 
-#define _WINDOWS
-#define NVML_LIB_EXPORT
-#define NVML_NO_UNVERSIONED_FUNC_DEFS
-
 #pragma push_macro("__declspec")
 #undef __declspec
 #define __declspec(x) __cdecl
+
+#define _WINDOWS
+#define NVML_LIB_EXPORT
+#define NVML_NO_UNVERSIONED_FUNC_DEFS
 #include "nvml.h"
+
 #pragma pop_macro("__declspec")
 
 static void *libnvidia_ml_handle = NULL;
@@ -57,7 +58,7 @@ static nvmlReturn_t (*pnvmlDeviceGetArchitecture)(nvmlDevice_t device, nvmlDevic
 static nvmlReturn_t (*pnvmlDeviceGetAutoBoostedClocksEnabled)(nvmlDevice_t device, nvmlEnableState_t *isEnabled, nvmlEnableState_t *defaultIsEnabled) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetBAR1MemoryInfo)(nvmlDevice_t device, nvmlBAR1Memory_t *bar1Memory) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetBoardId)(nvmlDevice_t device, unsigned int *boardId) = NULL;
-static nvmlReturn_t (*pnvmlDeviceGetBoardPartNumber)(nvmlDevice_t device, char* partNumber, unsigned int length) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetBoardPartNumber)(nvmlDevice_t device, char *partNumber, unsigned int length) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetBrand)(nvmlDevice_t device, nvmlBrandType_t *type) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetBridgeChipInfo)(nvmlDevice_t device, nvmlBridgeChipHierarchy_t *bridgeHierarchy) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetClock)(nvmlDevice_t device, nvmlClockType_t clockType, nvmlClockId_t clockId, unsigned int *clockMHz) = NULL;
@@ -107,7 +108,7 @@ static nvmlReturn_t (*pnvmlDeviceGetMemoryInfo)(nvmlDevice_t device, nvmlMemory_
 static nvmlReturn_t (*pnvmlDeviceGetMigMode)(nvmlDevice_t device, unsigned int *currentMode, unsigned int *pendingMode) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetMultiGpuBoard)(nvmlDevice_t device, unsigned int *multiGpuBool) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetName)(nvmlDevice_t device, char *name, unsigned int length) = NULL;
-static nvmlReturn_t (*pnvmlDeviceGetNvLinkCapability)(nvmlDevice_t device, unsigned int link, nvmlNvLinkCapability_t capability, unsigned int *capResult) = NULL; 
+static nvmlReturn_t (*pnvmlDeviceGetNvLinkCapability)(nvmlDevice_t device, unsigned int link, nvmlNvLinkCapability_t capability, unsigned int *capResult) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetNvLinkErrorCounter)(nvmlDevice_t device, unsigned int link, nvmlNvLinkErrorCounter_t counter, unsigned long long *counterValue) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetNvLinkRemotePciInfo_v2)(nvmlDevice_t device, unsigned int link, nvmlPciInfo_t *pci) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetNvLinkState)(nvmlDevice_t device, unsigned int link, nvmlEnableState_t *isActive) = NULL;
@@ -155,8 +156,8 @@ static nvmlReturn_t (*pnvmlDeviceRegisterEvents)(nvmlDevice_t device, unsigned l
 static nvmlReturn_t (*pnvmlDeviceSetComputeMode)(nvmlDevice_t device, nvmlComputeMode_t mode) = NULL;
 static nvmlReturn_t (*pnvmlEventSetCreate)(nvmlEventSet_t *set) = NULL;
 static nvmlReturn_t (*pnvmlEventSetFree)(nvmlEventSet_t set) = NULL;
-static nvmlReturn_t (*pnvmlEventSetWait)(nvmlEventSet_t set, nvmlEventData_t * data, unsigned int timeoutms) = NULL;
-static nvmlReturn_t (*pnvmlEventSetWait_v2)(nvmlEventSet_t set, nvmlEventData_t * data, unsigned int timeoutms) = NULL;
+static nvmlReturn_t (*pnvmlEventSetWait)(nvmlEventSet_t set, nvmlEventData_t *data, unsigned int timeoutms) = NULL;
+static nvmlReturn_t (*pnvmlEventSetWait_v2)(nvmlEventSet_t set, nvmlEventData_t *data, unsigned int timeoutms) = NULL;
 
 const char* __cdecl nvmlErrorString(nvmlReturn_t result)
 {
@@ -296,7 +297,7 @@ nvmlReturn_t __cdecl nvmlDeviceGetBoardId(nvmlDevice_t device, unsigned int *boa
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
-nvmlReturn_t __cdecl nvmlDeviceGetBoardPartNumber(nvmlDevice_t device, char* partNumber, unsigned int length)
+nvmlReturn_t __cdecl nvmlDeviceGetBoardPartNumber(nvmlDevice_t device, char *partNumber, unsigned int length)
 {
     TRACE("(%p, %p, %u)\n", device, partNumber, length);
     return pnvmlDeviceGetBoardPartNumber
@@ -1268,7 +1269,7 @@ nvmlReturn_t __cdecl nvmlEventSetFree(nvmlEventSet_t set)
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
-nvmlReturn_t __cdecl nvmlEventSetWait(nvmlEventSet_t set, nvmlEventData_t * data, unsigned int timeoutms)
+nvmlReturn_t __cdecl nvmlEventSetWait(nvmlEventSet_t set, nvmlEventData_t *data, unsigned int timeoutms)
 {
     WARN("(%p, %p, %u): using Linux behavior\n", set, data, timeoutms);
     return pnvmlEventSetWait
@@ -1276,7 +1277,7 @@ nvmlReturn_t __cdecl nvmlEventSetWait(nvmlEventSet_t set, nvmlEventData_t * data
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
-nvmlReturn_t __cdecl nvmlEventSetWait_v2(nvmlEventSet_t set, nvmlEventData_t * data, unsigned int timeoutms)
+nvmlReturn_t __cdecl nvmlEventSetWait_v2(nvmlEventSet_t set, nvmlEventData_t *data, unsigned int timeoutms)
 {
     WARN("(%p, %p, %u): using Linux behavior\n", set, data, timeoutms);
     return pnvmlEventSetWait_v2
