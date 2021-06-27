@@ -1298,7 +1298,7 @@ nvmlReturn_t __cdecl nvmlSystemGetTopologyGpuSet(unsigned int cpuNumber, unsigne
 
 static BOOL load_nvml(void)
 {
-    if (!(libnvidia_ml_handle = dlopen("libnvidia-ml.so", RTLD_NOW)))
+    if (!(libnvidia_ml_handle = dlopen("libnvidia-ml.so.1", RTLD_NOW)))
     {
         ERR("Wine cannot find the libnvidia-ml.so library, NVIDIA Management Library support disabled.\n");
         return FALSE;
