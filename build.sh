@@ -2,30 +2,43 @@
 
 set -e
 
-cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+if [ -z "$1" ]; then
+  echo "Usage: build.sh destdir"
+  exit 1
+fi
+
+NVML_SRC_DIR=`dirname $(readlink -f $0)`
+NVML_BUILD_DIR=$(realpath "$1")"/wine-nvml"
+
+if [ -e "$NVML_BUILD_DIR" ]; then
+  echo "Build directory $NVML_BUILD_DIR already exists"
+  exit 1
+fi
 
 git submodule update --init
 
-meson setup \
-    --prefix /usr \
-    --libdir lib \
-    --buildtype release \
-    --cross-file build-wine64.txt \
-    build64 .
+function build_arch {
+  export WINEARCH="win$1"
 
-ninja -C build64
+  cd "$NVML_SRC_DIR"
 
-meson setup \
-    --prefix /usr \
-    --libdir lib32 \
-    --buildtype release \
-    --cross-file build-wine32.txt \
-    build32 .
+  meson --cross-file "$NVML_SRC_DIR/build-wine$1.txt"  \
+        --buildtype "release"                         \
+        --prefix "$NVML_BUILD_DIR/install.$1"         \
+        --libdir="lib$1"                                \
+        "$NVML_BUILD_DIR/build.$1"
 
-ninja -C build32
+  cd "$NVML_BUILD_DIR/build.$1"
+  ninja install
 
-if [[ "${1}" == --install ]]
-then
-    ninja -C build64 install
-    ninja -C build32 install
-fi
+  if ! [ -e "$NVML_BUILD_DIR/lib" ]; then
+    mkdir -p "$NVML_BUILD_DIR/lib/wine"
+  fi
+
+  cp -r "$NVML_BUILD_DIR/install.$1/lib$1/wine" "$NVML_BUILD_DIR/lib"
+  rm -R "$NVML_BUILD_DIR/build.$1"
+  rm -R "$NVML_BUILD_DIR/install.$1"
+}
+
+build_arch 64
+build_arch 32
