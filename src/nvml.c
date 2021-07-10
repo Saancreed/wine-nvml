@@ -110,6 +110,7 @@ static nvmlReturn_t (*pnvmlDeviceGetMultiGpuBoard)(nvmlDevice_t device, unsigned
 static nvmlReturn_t (*pnvmlDeviceGetName)(nvmlDevice_t device, char *name, unsigned int length) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetNvLinkCapability)(nvmlDevice_t device, unsigned int link, nvmlNvLinkCapability_t capability, unsigned int *capResult) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetNvLinkErrorCounter)(nvmlDevice_t device, unsigned int link, nvmlNvLinkErrorCounter_t counter, unsigned long long *counterValue) = NULL;
+static nvmlReturn_t (*pnvmlDeviceGetNvLinkRemotePciInfo)(nvmlDevice_t device, unsigned int link, nvmlPciInfo_t *pci) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetNvLinkRemotePciInfo_v2)(nvmlDevice_t device, unsigned int link, nvmlPciInfo_t *pci) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetNvLinkState)(nvmlDevice_t device, unsigned int link, nvmlEnableState_t *isActive) = NULL;
 static nvmlReturn_t (*pnvmlDeviceGetNvLinkUtilizationControl)(nvmlDevice_t device, unsigned int link, unsigned int counter, nvmlNvLinkUtilizationControl_t *control) = NULL;
@@ -779,6 +780,14 @@ nvmlReturn_t __cdecl nvmlDeviceGetNvLinkErrorCounter(nvmlDevice_t device, unsign
         : NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 
+nvmlReturn_t __cdecl nvmlDeviceGetNvLinkRemotePciInfo(nvmlDevice_t device, unsigned int link, nvmlPciInfo_t *pci)
+{
+    TRACE("(%p, %u, %p)\n", device, link, pci);
+    return pnvmlDeviceGetNvLinkRemotePciInfo
+        ? pnvmlDeviceGetNvLinkRemotePciInfo(device, link, pci)
+        : NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+
 nvmlReturn_t __cdecl nvmlDeviceGetNvLinkRemotePciInfo_v2(nvmlDevice_t device, unsigned int link, nvmlPciInfo_t *pci)
 {
     TRACE("(%p, %u, %p)\n", device, link, pci);
@@ -1380,6 +1389,7 @@ static BOOL load_nvml(void)
     TRY_LOAD_FUNCPTR(nvmlDeviceGetName);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetNvLinkCapability);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetNvLinkErrorCounter);
+    TRY_LOAD_FUNCPTR(nvmlDeviceGetNvLinkRemotePciInfo);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetNvLinkRemotePciInfo_v2);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetNvLinkState);
     TRY_LOAD_FUNCPTR(nvmlDeviceGetNvLinkUtilizationControl);
