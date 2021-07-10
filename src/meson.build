@@ -9,6 +9,11 @@ arch_dir_prefix = target_machine.cpu_family() == 'x86_64' ? 'x86_64-' : 'i386-'
 install_dir_unix    = install_dir / arch_dir_prefix + 'unix'
 install_dir_windows = install_dir / arch_dir_prefix + 'windows'
 
+if get_option('old_install_layout')
+    install_dir_unix    = install_dir
+    install_dir_windows = install_dir / 'fakedlls'
+endif
+
 nvml_def_target = custom_target('libnvml.def',
     output      : 'libnvml.def',
     input       : 'nvml.spec',
