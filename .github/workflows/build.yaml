@@ -1,0 +1,43 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  ci:
+    name: Build
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Prepare
+        shell: sudo bash --noprofile --norc -eo pipefail {0}
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          curl -L 'https://dl.winehq.org/wine-builds/winehq.key' | apt-key add -
+          echo 'deb https://dl.winehq.org/wine-builds/ubuntu/ focal main' > /etc/apt/sources.list.d/winehq.list
+          dpkg --add-architecture i386
+          apt-get update
+          apt-get install -y --no-install-recommends gcc-multilib meson ninja-build wine-devel-amd64 wine-devel-i386 wine-devel-dev winehq-devel
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Setup x86_64
+        run: meson setup ./build64 --cross-file ./build-wine64.txt --libdir lib64 --prefix /usr --buildtype release --strip
+      - name: Build x86_64
+        run: ninja -C ./build64
+      - name: Setup x86
+        run: meson setup ./build32 --cross-file ./build-wine32.txt --libdir lib32 --prefix /usr --buildtype release --strip
+      - name: Build x86
+        run: ninja -C ./build32
+      - name: Install
+        run: |
+          export DESTDIR="${PWD}"
+          ninja -C ./build64 install
+          ninja -C ./build32 install
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: wine-nvml
+          path: usr/**
