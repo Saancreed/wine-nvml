@@ -1,12 +1,12 @@
 pkgname=wine-nvml
-pkgver=r36.e36fd94
+pkgver=0.1
 pkgrel=1
 pkgdesc='NVIDIA Management Library wrapper for Wine'
 arch=('x86_64')
 url='https://github.com/Saancreed/wine-nvml'
 license=('LGPL2.1')
 makedepends=('git' 'meson' 'ninja' 'wine')
-source=("git+https://github.com/Saancreed/wine-nvml.git${_commit:+#commit=${_commit}}"
+source=("git+https://github.com/Saancreed/wine-nvml.git#tag=v${pkgver}"
         'git+https://github.com/NVIDIA/nvidia-settings.git'
         'git+https://github.com/wine-mirror/wine.git')
 sha512sums=('SKIP' 'SKIP' 'SKIP')
@@ -27,9 +27,7 @@ prepare()
 
 pkgver()
 {
-    cd "${srcdir}/wine-nvml"
-
-    printf 'r%s.%s' "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+    git -C "${srcdir}/wine-nvml" describe --tags | sed -E 's/^v//;s/-([0-9]+)-/-r\1-/;s/-/./g'
 }
 
 build()
