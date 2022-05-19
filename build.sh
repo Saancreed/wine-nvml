@@ -2,30 +2,56 @@
 
 set -e
 
-cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+srcdir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
 git submodule update --init
 
+(cd "${srcdir}/src" && ./make_nvml)
+
 meson setup \
+    --cross-file "${srcdir}"/cross-mingw64.txt \
     --prefix /usr \
-    --libdir lib \
+    --libdir lib64 \
     --buildtype release \
-    --cross-file build-wine64.txt \
-    build64 .
+    --strip \
+    ./build-mingw64 "${srcdir}"
 
-ninja -C build64
+ninja -C ./build-mingw64
 
 meson setup \
+    --cross-file "${srcdir}"/cross-wine64.txt \
+    --prefix /usr \
+    --libdir lib64 \
+    --buildtype release \
+    --strip \
+    ./build-wine64 "${srcdir}"
+
+ninja -C ./build-wine64
+
+meson setup \
+    --cross-file "${srcdir}"/cross-mingw32.txt \
     --prefix /usr \
     --libdir lib32 \
     --buildtype release \
-    --cross-file build-wine32.txt \
-    build32 .
+    --strip \
+    ./build-mingw32 "${srcdir}"
 
-ninja -C build32
+ninja -C ./build-mingw32
 
-if [[ "${1}" == --install ]]
+meson setup \
+    --cross-file "${srcdir}"/cross-wine32.txt \
+    --prefix /usr \
+    --libdir lib32 \
+    --buildtype release \
+    --strip \
+    ./build-wine32 "${srcdir}"
+
+ninja -C ./build-wine32
+
+if [[ "${1:-}" == --install ]]
 then
-    ninja -C build64 install
-    ninja -C build32 install
+    ninja -C ./build-mingw32 install
+    ninja -C ./build-wine32 install
+    ninja -C ./build-mingw64 install
+    ninja -C ./build-wine64 install
 fi

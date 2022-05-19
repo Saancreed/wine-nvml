@@ -1,13 +1,15 @@
 [binaries]
 c = 'winegcc'
+cpp = 'wineg++'
 ar = 'ar'
 strip = 'strip'
 
+[built-in options]
+c_args = ['-m64']
+c_link_args = ['-m64']
+
 [properties]
-c_args = ['-m64', '-fno-gnu-unique', '-D__WINESRC__', '-Wno-attributes', '-Wno-implicit-function-declaration']
-c_link_args = ['-m64', '-mwindows']
 needs_exe_wrapper = true
-winelib = true
 
 [host_machine]
 system = 'linux'

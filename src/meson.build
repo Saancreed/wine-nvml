@@ -1,37 +1,24 @@
-nvml_res_target = custom_target('nvml.res',
-    output  : 'nvml.res',
-    input   : 'nvml.rc',
-    command : [wrc, target_arch, '-D__WINESRC__', '-o', '@OUTPUT@', '@INPUT@'],
-    install : false)
+include_dirs = include_directories('.')
 
-arch_dir_prefix = target_machine.cpu_family() == 'x86_64' ? 'x86_64-' : 'i386-'
+if is_windows
+    nvml_res = custom_target('nvml.res',
+        output  : 'nvml.res',
+        input   : 'nvml.rc',
+        command : [wrc, '-o', '@OUTPUT@', '@INPUT@'],
+        install : false)
 
-install_dir_unix    = install_dir / arch_dir_prefix + 'unix'
-install_dir_windows = install_dir / arch_dir_prefix + 'windows'
-
-if get_option('old_install_layout')
-    install_dir_unix    = install_dir
-    install_dir_windows = install_dir / 'fakedlls'
+    nvml_dll = shared_library('nvml', ['nvml.c', nvml_res],
+        name_prefix         : '',
+        include_directories : include_dirs,
+        link_depends        : ['nvml.spec'],
+        link_args           : ['-Wl,--wine-builtin', meson.current_source_dir() / 'nvml.spec'],
+        install             : true,
+        install_dir         : install_dir)
+else
+    nvml_so = shared_library('nvml', ['nvml_unixlib.c'],
+        name_prefix         : '',
+        include_directories : include_dirs,
+        dependencies        : [lib_dl],
+        install             : true,
+        install_dir         : install_dir)
 endif
-
-nvml_def_target = custom_target('libnvml.def',
-    output      : 'libnvml.def',
-    input       : 'nvml.spec',
-    command     : [winebuild, target_arch, '--def', '-o', '@OUTPUT@', '-E', '@INPUT@'],
-    install     : true,
-    install_dir : install_dir_unix)
-
-nvml_dll_target = custom_target('nvml.dll',
-    output      : 'nvml.dll',
-    input       : [nvml_def_target, nvml_res_target],
-    command     : [winebuild, target_arch, '--dll', '--fake-module', '-o', '@OUTPUT@', '-E', '@INPUT@'],
-    install     : true,
-    install_dir : install_dir_windows)
-
-nvml_dll = shared_library('nvml.dll', ['nvml.c'],
-    name_prefix  : '',
-    dependencies : [lib_dl],
-    link_depends : [nvml_def_target],
-    link_args    : [meson.current_build_dir() / 'libnvml.def'],
-    install      : true,
-    install_dir  : install_dir_unix)

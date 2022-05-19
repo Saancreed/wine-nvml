@@ -1,0 +1,5 @@
+nvml_*.h
+nvml.h
+nvml.c
+nvml_unixlib.c
+nvml.spec
