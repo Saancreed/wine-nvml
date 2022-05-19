@@ -1,1 +1,0 @@
-../submodules/nvidia-settings/src/nvml.h

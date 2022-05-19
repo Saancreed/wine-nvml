@@ -1,0 +1,845 @@
+#!/usr/bin/env bash
+#
+# Wine NVML generator
+#
+# Copyright (C) 2022 Krzysztof Bogacki
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
+#
+
+set -euo pipefail
+shopt -s extglob
+
+version="${1:-515.43.04}"
+
+header_url="https://raw.githubusercontent.com/NVIDIA/nvidia-settings/${version}/src/nvml.h"
+
+if ! [[ -r "nvml_${version}.h" ]]
+then
+    curl -Lo "nvml_${version}.h" "${header_url}"
+fi
+
+cpp -DNVML_NO_UNVERSIONED_FUNC_DEFS -P "nvml_${version}.h" \
+    | awk '/nvmlReturn_t nvml.+,$/ { do { l = $0; getline; gsub(" +", " "); printf "%s", l } while (/,$/)} 1' \
+    > "nvml_${version}.i.h"
+
+ln -f "nvml_${version}.h" nvml.h
+
+declare -A known_funcs=(
+    # Initialization and Cleanup
+    [nvmlInit_v2]='passthrough'
+    [nvmlInitWithFlags]='passthrough'
+    [nvmlShutdown]='passthrough'
+    # Error Reporting
+    # [nvmlErrorString]='' # handled manually
+    # System Queries
+    [nvmlSystemGetDriverVersion]='passthrough'
+    [nvmlSystemGetNVMLVersion]='passthrough'
+    [nvmlSystemGetCudaDriverVersion]='passthrough'
+    [nvmlSystemGetCudaDriverVersion_v2]='passthrough'
+    [nvmlSystemGetProcessName]='passthrough' # handles Linux pids instead of Windows pids
+    # Unit Queries
+    [nvmlUnitGetCount]='passthrough'
+    [nvmlUnitGetHandleByIndex]='passthrough'
+    [nvmlUnitGetUnitInfo]='passthrough'
+    [nvmlUnitGetLedState]='passthrough'
+    [nvmlUnitGetPsuInfo]='passthrough'
+    [nvmlUnitGetTemperature]='passthrough'
+    [nvmlUnitGetFanSpeedInfo]='passthrough'
+    [nvmlUnitGetDevices]='passthrough'
+    [nvmlSystemGetHicVersion]='passthrough'
+    # Device Queries
+    [nvmlDeviceGetCount_v2]='passthrough'
+    [nvmlDeviceGetAttributes_v2]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceGetHandleByIndex_v2]='passthrough'
+    [nvmlDeviceGetHandleBySerial]='passthrough'
+    [nvmlDeviceGetHandleByUUID]='passthrough'
+    [nvmlDeviceGetHandleByPciBusId_v2]='passthrough'
+    [nvmlDeviceGetName]='passthrough'
+    [nvmlDeviceGetBrand]='passthrough'
+    [nvmlDeviceGetIndex]='passthrough'
+    [nvmlDeviceGetSerial]='passthrough'
+    # CPU and Memory Affinity
+    [nvmlDeviceGetMemoryAffinity]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceGetCpuAffinityWithinScope]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceGetCpuAffinity]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceSetCpuAffinity]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceClearCpuAffinity]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+
+    [nvmlDeviceGetTopologyCommonAncestor]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceGetTopologyNearestGpus]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlSystemGetTopologyGpuSet]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+
+    [nvmlDeviceGetP2PStatus]='passthrough'
+    [nvmlDeviceGetUUID]='passthrough'
+    [nvmlVgpuInstanceGetMdevUUID]='passthrough'
+    [nvmlDeviceGetMinorNumber]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceGetBoardPartNumber]='passthrough'
+    [nvmlDeviceGetInforomVersion]='passthrough'
+    [nvmlDeviceGetInforomImageVersion]='passthrough'
+    [nvmlDeviceGetInforomConfigurationChecksum]='passthrough'
+    [nvmlDeviceValidateInforom]='passthrough'
+    [nvmlDeviceGetDisplayMode]='passthrough'
+    [nvmlDeviceGetDisplayActive]='passthrough'
+    [nvmlDeviceGetPersistenceMode]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceGetPciInfo_v3]='passthrough'
+    [nvmlDeviceGetMaxPcieLinkGeneration]='passthrough'
+    [nvmlDeviceGetMaxPcieLinkWidth]='passthrough'
+    [nvmlDeviceGetCurrPcieLinkGeneration]='passthrough'
+    [nvmlDeviceGetCurrPcieLinkWidth]='passthrough'
+    [nvmlDeviceGetPcieThroughput]='passthrough'
+    [nvmlDeviceGetPcieReplayCounter]='passthrough'
+    [nvmlDeviceGetClockInfo]='passthrough'
+    [nvmlDeviceGetMaxClockInfo]='passthrough'
+    [nvmlDeviceGetApplicationsClock]='passthrough'
+    [nvmlDeviceGetDefaultApplicationsClock]='passthrough'
+    [nvmlDeviceResetApplicationsClocks]='passthrough'
+    [nvmlDeviceGetClock]='passthrough'
+    [nvmlDeviceGetMaxCustomerBoostClock]='passthrough'
+    [nvmlDeviceGetSupportedMemoryClocks]='passthrough'
+    [nvmlDeviceGetSupportedGraphicsClocks]='passthrough'
+    [nvmlDeviceGetAutoBoostedClocksEnabled]='passthrough'
+    [nvmlDeviceSetAutoBoostedClocksEnabled]='passthrough'
+    [nvmlDeviceSetDefaultAutoBoostedClocksEnabled]='NVML_ERROR_NO_PERMISSION' # requires root
+    [nvmlDeviceGetFanSpeed]='passthrough'
+    [nvmlDeviceGetFanSpeed_v2]='passthrough'
+    [nvmlDeviceSetDefaultFanSpeed_v2]='passthrough'
+    [nvmlDeviceGetMinMaxFanSpeed]='passthrough'
+    [nvmlDeviceGetNumFans]='passthrough'
+    [nvmlDeviceGetTemperature]='passthrough'
+    [nvmlDeviceGetTemperatureThreshold]='passthrough'
+    [nvmlDeviceSetTemperatureThreshold]='passthrough'
+    [nvmlDeviceGetThermalSettings]='passthrough'
+    [nvmlDeviceGetPerformanceState]='passthrough'
+    [nvmlDeviceGetCurrentClocksThrottleReasons]='passthrough'
+    [nvmlDeviceGetSupportedClocksThrottleReasons]='passthrough'
+    [nvmlDeviceGetPowerState]='passthrough'
+    [nvmlDeviceGetPowerManagementMode]='passthrough'
+    [nvmlDeviceGetPowerManagementLimit]='passthrough'
+    [nvmlDeviceGetPowerManagementLimitConstraints]='passthrough'
+    [nvmlDeviceGetPowerManagementDefaultLimit]='passthrough'
+    [nvmlDeviceGetPowerUsage]='passthrough'
+    [nvmlDeviceGetTotalEnergyConsumption]='passthrough'
+    [nvmlDeviceGetEnforcedPowerLimit]='passthrough'
+    [nvmlDeviceGetGpuOperationMode]='passthrough'
+    [nvmlDeviceGetMemoryInfo]='passthrough' # always behaves like TCC on Windows
+    [nvmlDeviceGetMemoryInfo_v2]='passthrough' # always behaves like TCC on Windows
+    [nvmlDeviceGetComputeMode]='passthrough'
+    [nvmlDeviceGetCudaComputeCapability]='passthrough'
+    [nvmlDeviceGetEccMode]='passthrough'
+    [nvmlDeviceGetDefaultEccMode]='passthrough'
+    [nvmlDeviceGetBoardId]='passthrough'
+    [nvmlDeviceGetMultiGpuBoard]='passthrough'
+    [nvmlDeviceGetTotalEccErrors]='passthrough'
+    [nvmlDeviceGetDetailedEccErrors]='passthrough'
+    [nvmlDeviceGetMemoryErrorCounter]='passthrough'
+    [nvmlDeviceGetUtilizationRates]='passthrough'
+    [nvmlDeviceGetEncoderUtilization]='passthrough'
+    [nvmlDeviceGetEncoderCapacity]='passthrough'
+    [nvmlDeviceGetEncoderStats]='passthrough'
+    [nvmlDeviceGetEncoderSessions]='passthrough' # exposes Linux pids
+    [nvmlDeviceGetDecoderUtilization]='passthrough'
+    [nvmlDeviceGetFBCStats]='passthrough'
+    [nvmlDeviceGetFBCSessions]='passthrough' # exposes Linux pids
+    [nvmlDeviceGetDriverModel]='custom' # Windows only
+    [nvmlDeviceGetVbiosVersion]='passthrough'
+    [nvmlDeviceGetBridgeChipInfo]='passthrough'
+    [nvmlDeviceGetComputeRunningProcesses_v3]='passthrough' # exposes Linux pids
+    [nvmlDeviceGetGraphicsRunningProcesses_v3]='passthrough' # exposes Linux pids
+    [nvmlDeviceGetMPSComputeRunningProcesses_v3]='passthrough' # exposes Linux pids
+    [nvmlDeviceOnSameBoard]='passthrough'
+    [nvmlDeviceGetAPIRestriction]='passthrough'
+    [nvmlDeviceGetSamples]='passthrough'
+    [nvmlDeviceGetBAR1MemoryInfo]='passthrough'
+    [nvmlDeviceGetViolationStatus]='passthrough'
+    [nvmlDeviceGetIrqNum]='passthrough'
+    [nvmlDeviceGetNumGpuCores]='passthrough'
+    [nvmlDeviceGetPowerSource]='passthrough'
+    [nvmlDeviceGetMemoryBusWidth]='passthrough'
+    [nvmlDeviceGetPcieLinkMaxSpeed]='passthrough'
+    [nvmlDeviceGetPcieSpeed]='passthrough'
+    [nvmlDeviceGetAdaptiveClockInfoStatus]='passthrough'
+    [nvmlDeviceGetAccountingMode]='passthrough'
+    [nvmlDeviceGetAccountingStats]='passthrough'
+    [nvmlDeviceGetAccountingPids]='passthrough' # exposes Linux pids
+    [nvmlDeviceGetAccountingBufferSize]='passthrough'
+    [nvmlDeviceGetRetiredPages]='passthrough'
+    [nvmlDeviceGetRetiredPages_v2]='passthrough'
+    [nvmlDeviceGetRetiredPagesPendingStatus]='passthrough'
+    [nvmlDeviceGetRemappedRows]='passthrough'
+    [nvmlDeviceGetRowRemapperHistogram]='passthrough'
+    [nvmlDeviceGetArchitecture]='passthrough'
+    # Unit Commands
+    # each requires root
+    [nvmlUnitSetLedState]='NVML_ERROR_NO_PERMISSION'
+    # Device Commands
+    # each requires root
+    [nvmlDeviceSetPersistenceMode]='NVML_ERROR_NO_PERMISSION' # Linux only
+    [nvmlDeviceSetComputeMode]='NVML_ERROR_NO_PERMISSION'
+    [nvmlDeviceSetEccMode]='NVML_ERROR_NO_PERMISSION'
+    [nvmlDeviceClearEccErrorCounts]='NVML_ERROR_NO_PERMISSION'
+    [nvmlDeviceSetDriverModel]='NVML_ERROR_NO_PERMISSION' # Linux only
+    [nvmlDeviceSetGpuLockedClocks]='NVML_ERROR_NO_PERMISSION'
+    [nvmlDeviceResetGpuLockedClocks]='NVML_ERROR_NO_PERMISSION'
+    [nvmlDeviceSetMemoryLockedClocks]='NVML_ERROR_NO_PERMISSION'
+    [nvmlDeviceResetMemoryLockedClocks]='NVML_ERROR_NO_PERMISSION'
+    [nvmlDeviceSetApplicationsClocks]='NVML_ERROR_NO_PERMISSION'
+    [nvmlDeviceGetClkMonStatus]='NVML_ERROR_NO_PERMISSION'
+    [nvmlDeviceSetPowerManagementLimit]='NVML_ERROR_NO_PERMISSION'
+    [nvmlDeviceSetGpuOperationMode]='NVML_ERROR_NO_PERMISSION'
+    [nvmlDeviceSetAPIRestriction]='NVML_ERROR_NO_PERMISSION'
+    [nvmlDeviceSetAccountingMode]='NVML_ERROR_NO_PERMISSION'
+    [nvmlDeviceClearAccountingPids]='NVML_ERROR_NO_PERMISSION'
+    # NvLink Methods
+    [nvmlDeviceGetNvLinkState]='passthrough'
+    [nvmlDeviceGetNvLinkVersion]='passthrough'
+    [nvmlDeviceGetNvLinkCapability]='passthrough'
+    [nvmlDeviceGetNvLinkRemotePciInfo_v2]='passthrough'
+    [nvmlDeviceGetNvLinkErrorCounter]='passthrough'
+    [nvmlDeviceResetNvLinkErrorCounters]='passthrough'
+    [nvmlDeviceSetNvLinkUtilizationControl]='passthrough'
+    [nvmlDeviceGetNvLinkUtilizationControl]='passthrough'
+    [nvmlDeviceGetNvLinkUtilizationCounter]='passthrough'
+    [nvmlDeviceFreezeNvLinkUtilizationCounter]='passthrough'
+    [nvmlDeviceResetNvLinkUtilizationCounter]='passthrough'
+    [nvmlDeviceGetNvLinkRemoteDeviceType]='passthrough'
+    # Event Handling Methods
+    [nvmlEventSetCreate]='passthrough'
+    [nvmlDeviceRegisterEvents]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceGetSupportedEventTypes]='custom' # returns an empty mask in eventTypes on Windows
+    [nvmlEventSetWait_v2]='passthrough' # uses Linux behavior
+    [nvmlEventSetFree]='passthrough'
+    # Drain states
+    [nvmlDeviceModifyDrainState]='NVML_ERROR_NOT_SUPPORTED' # Linux only, requires root
+    [nvmlDeviceQueryDrainState]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceRemoveGpu_v2]='NVML_ERROR_NOT_SUPPORTED' # Linux only, requires root
+    [nvmlDeviceDiscoverGpus]='NVML_ERROR_NOT_SUPPORTED' # Linux only, requires root
+    # Field Value Queries
+    [nvmlDeviceGetFieldValues]='passthrough'
+    # vGPU APIs
+    [nvmlDeviceGetVirtualizationMode]='passthrough'
+    [nvmlDeviceGetHostVgpuMode]='passthrough'
+    [nvmlDeviceSetVirtualizationMode]='passthrough'
+    [nvmlDeviceGetGridLicensableFeatures_v4]='passthrough'
+
+    [nvmlDeviceGetProcessUtilization]='passthrough' # exposes Linux pids
+
+    [nvmlDeviceGetGspFirmwareVersion]='passthrough'
+    [nvmlDeviceGetGspFirmwareMode]='passthrough'
+    # vGPU Management
+    [nvmlDeviceGetSupportedVgpus]='passthrough'
+    [nvmlDeviceGetCreatableVgpus]='passthrough'
+    [nvmlVgpuTypeGetClass]='passthrough'
+    [nvmlVgpuTypeGetName]='passthrough'
+    [nvmlVgpuTypeGetGpuInstanceProfileId]='passthrough'
+    [nvmlVgpuTypeGetDeviceID]='passthrough'
+    [nvmlVgpuTypeGetFramebufferSize]='passthrough'
+    [nvmlVgpuTypeGetNumDisplayHeads]='passthrough'
+    [nvmlVgpuTypeGetResolution]='passthrough'
+    [nvmlVgpuTypeGetLicense]='passthrough'
+    [nvmlVgpuTypeGetFrameRateLimit]='passthrough'
+    [nvmlVgpuTypeGetMaxInstances]='passthrough'
+    [nvmlVgpuTypeGetMaxInstancesPerVm]='passthrough'
+    [nvmlDeviceGetActiveVgpus]='passthrough'
+    [nvmlVgpuInstanceGetVmID]='passthrough'
+    [nvmlVgpuInstanceGetUUID]='passthrough'
+    [nvmlVgpuInstanceGetVmDriverVersion]='passthrough'
+    [nvmlVgpuInstanceGetFbUsage]='passthrough'
+    [nvmlVgpuInstanceGetLicenseStatus]='passthrough'
+    [nvmlVgpuInstanceGetType]='passthrough'
+    [nvmlVgpuInstanceGetFrameRateLimit]='passthrough'
+    [nvmlVgpuInstanceGetEccMode]='passthrough'
+    [nvmlVgpuInstanceGetEncoderCapacity]='passthrough'
+    [nvmlVgpuInstanceSetEncoderCapacity]='passthrough'
+    [nvmlVgpuInstanceGetEncoderStats]='passthrough'
+    [nvmlVgpuInstanceGetEncoderSessions]='passthrough' # exposes Linux pids
+    [nvmlVgpuInstanceGetFBCStats]='passthrough'
+    [nvmlVgpuInstanceGetFBCSessions]='passthrough' # exposes Linux pids
+    [nvmlVgpuInstanceGetGpuInstanceId]='passthrough'
+    [nvmlVgpuInstanceGetGpuPciId]='passthrough'
+    [nvmlVgpuTypeGetCapabilities]='passthrough'
+    # vGPU Migration
+    [nvmlVgpuInstanceGetMetadata]='passthrough'
+    [nvmlDeviceGetVgpuMetadata]='passthrough'
+    [nvmlGetVgpuCompatibility]='passthrough'
+    [nvmlDeviceGetPgpuMetadataString]='passthrough'
+    [nvmlGetVgpuVersion]='passthrough'
+    [nvmlSetVgpuVersion]='passthrough'
+    # vGPU Utilization and Accounting
+    [nvmlDeviceGetVgpuUtilization]='passthrough'
+    [nvmlDeviceGetVgpuProcessUtilization]='passthrough'
+    [nvmlVgpuInstanceGetAccountingMode]='passthrough'
+    [nvmlVgpuInstanceGetAccountingPids]='passthrough' # exposes Linux pids
+    [nvmlVgpuInstanceGetAccountingStats]='passthrough'
+    [nvmlVgpuInstanceClearAccountingPids]='passthrough'
+    [nvmlVgpuInstanceGetLicenseInfo_v2]='passthrough'
+    # Excluded GPU Queries
+    [nvmlGetExcludedDeviceCount]='passthrough'
+    [nvmlGetExcludedDeviceInfoByIndex]='passthrough'
+    # Multi Instance GPU Management
+    [nvmlDeviceSetMigMode]='NVML_ERROR_NO_PERMISSION' # requires root, on Windows only disabling MIG mode is supported
+    [nvmlDeviceGetMigMode]='passthrough'
+    [nvmlDeviceGetGpuInstanceProfileInfo]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceGetGpuInstanceProfileInfoV]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceGetGpuInstancePossiblePlacements_v2]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
+    [nvmlDeviceGetGpuInstanceRemainingCapacity]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
+    [nvmlDeviceCreateGpuInstance]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
+    [nvmlDeviceCreateGpuInstanceWithPlacement]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
+    [nvmlGpuInstanceDestroy]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
+    [nvmlDeviceGetGpuInstances]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
+    [nvmlDeviceGetGpuInstanceById]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
+    [nvmlGpuInstanceGetInfo]='NVML_ERROR_NO_PERMISSION' # Linux only
+    [nvmlGpuInstanceGetComputeInstanceProfileInfo]='NVML_ERROR_NO_PERMISSION' # Linux only
+    [nvmlGpuInstanceGetComputeInstanceProfileInfoV]='NVML_ERROR_NO_PERMISSION' # Linux only
+    [nvmlGpuInstanceGetComputeInstanceRemainingCapacity]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
+    [nvmlGpuInstanceCreateComputeInstance]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
+    [nvmlComputeInstanceDestroy]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
+    [nvmlGpuInstanceGetComputeInstances]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
+    [nvmlGpuInstanceGetComputeInstanceById]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
+    [nvmlComputeInstanceGetInfo_v2]='NVML_ERROR_NO_PERMISSION' # Linux only
+    [nvmlDeviceIsMigDeviceHandle]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceGetGpuInstanceId]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceGetComputeInstanceId]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceGetMaxMigDeviceCount]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceGetMigDeviceHandleByIndex]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceGetDeviceHandleFromMigDeviceHandle]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+
+    [nvmlDeviceGetBusType]='passthrough'
+    [nvmlDeviceGetDynamicPstatesInfo]='passthrough'
+    [nvmlDeviceSetFanSpeed_v2]='passthrough'
+    [nvmlDeviceGetGpcClkVfOffset]='passthrough'
+    [nvmlDeviceSetGpcClkVfOffset]='passthrough'
+    [nvmlDeviceGetMinMaxClockOfPState]='passthrough'
+    [nvmlDeviceGetSupportedPerformanceStates]='passthrough'
+    # API versioning support
+    [nvmlInit]='passthrough'
+    [nvmlDeviceGetCount]='passthrough'
+    [nvmlDeviceGetHandleByIndex]='passthrough'
+    [nvmlDeviceGetHandleByPciBusId]='passthrough'
+    [nvmlDeviceGetPciInfo]='passthrough'
+    [nvmlDeviceGetPciInfo_v2]='passthrough'
+    [nvmlDeviceGetNvLinkRemotePciInfo]='passthrough'
+    [nvmlDeviceGetGridLicensableFeatures]='passthrough'
+    [nvmlDeviceGetGridLicensableFeatures_v2]='passthrough'
+    [nvmlDeviceGetGridLicensableFeatures_v3]='passthrough'
+    [nvmlDeviceRemoveGpu]='NVML_ERROR_NOT_SUPPORTED' # Linux only, requires root
+    [nvmlEventSetWait]='passthrough' # uses Linux behavior
+    [nvmlDeviceGetAttributes]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlComputeInstanceGetInfo]='NVML_ERROR_NO_PERMISSION' # Linux only
+    [nvmlDeviceGetComputeRunningProcesses]='passthrough' # exposes Linux pids
+    [nvmlDeviceGetComputeRunningProcesses_v2]='passthrough' # exposes Linux pids
+    [nvmlDeviceGetGraphicsRunningProcesses]='passthrough' # exposes Linux pids
+    [nvmlDeviceGetGraphicsRunningProcesses_v2]='passthrough' # exposes Linux pids
+    [nvmlDeviceGetMPSComputeRunningProcesses]='passthrough' # exposes Linux pids
+    [nvmlDeviceGetMPSComputeRunningProcesses_v2]='passthrough' # exposes Linux pids
+    [nvmlDeviceGetGpuInstancePossiblePlacements]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
+    [nvmlVgpuInstanceGetLicenseInfo]='passthrough'
+)
+
+calls=(nvmlErrorString)
+
+cat > nvml_private.h << 'EOF'
+#pragma once
+
+#include <stdarg.h>
+
+#define NVML_NO_UNVERSIONED_FUNC_DEFS
+
+#include "./nvml.h"
+
+struct nvmlErrorString_params
+{
+    nvmlReturn_t result;
+    const char *errorString;
+};
+EOF
+
+cat > nvml.c << 'EOF'
+#include <stdarg.h>
+
+#define __WINESRC__
+
+#include "winternl.h"
+#include "winbase.h"
+#include "wine/unixlib.h"
+#include "wine/debug.h"
+
+#include "./nvml_private.h"
+
+WINE_DEFAULT_DEBUG_CHANNEL(nvml);
+
+static unixlib_handle_t nvml_handle = 0;
+
+#define NVML_CALL(func, params) __wine_unix_call(nvml_handle, unix_ ## func, params)
+
+const char* nvmlErrorString(nvmlReturn_t result)
+{
+    struct nvmlErrorString_params params = { result, NULL };
+    TRACE("(%u)\n", result);
+    return NVML_CALL(nvmlErrorString, &params)
+        ? NULL
+        : params.errorString;
+}
+
+nvmlReturn_t nvmlInternalGetExportTable(void *ptr, GUID *guid)
+{
+    FIXME("(%p, %s): stub\n", ptr, debugstr_guid(guid));
+    return NVML_ERROR_INVALID_ARGUMENT;
+}
+EOF
+
+cat > nvml_unixlib.c << 'EOF'
+#if 0
+#pragma makedep unix
+#endif
+
+#include <stdarg.h>
+#include <dlfcn.h>
+
+#include "winternl.h"
+#include "winbase.h"
+#include "ntstatus.h"
+#include "wine/unixlib.h"
+
+#include "./nvml_private.h"
+
+static void *libnvidia_ml_handle = NULL;
+
+static const char* (*pnvmlErrorString)(nvmlReturn_t result) = NULL;
+
+static NTSTATUS wine_nvmlErrorString(void *args)
+{
+    struct nvmlErrorString_params *params = args;
+    params->errorString = pnvmlErrorString ? pnvmlErrorString(params->result) : NULL;
+    return STATUS_SUCCESS;
+}
+EOF
+
+cat > nvml.spec << 'EOF'
+@ cdecl nvmlErrorString(long)
+@ cdecl nvmlInternalGetExportTable(ptr ptr)
+@ cdecl nvmlGetBlacklistDeviceCount(ptr) nvmlGetExcludedDeviceCount
+@ cdecl nvmlGetBlacklistDeviceInfoByIndex(long ptr) nvmlGetExcludedDeviceInfoByIndex
+EOF
+
+declare -A type_mappings
+
+function print_format()
+{
+    local argtype="${1%%*( )*([a-zA-Z0-9_])}"
+
+    if [[ -v type_mappings[${argtype}] ]]
+    then
+        argtype="${type_mappings[${argtype}]}"
+    fi
+
+    case "${argtype}"
+    in
+        ('const char *' | 'const char*')
+            echo '%s'
+        ;;
+        (*'*')
+            echo '%p'
+        ;;
+        ('unsigned int')
+            echo '%u'
+        ;;
+        ('int')
+            echo '%i'
+        ;;
+        ('unsigned long long')
+            echo '%llu'
+        ;;
+        ('long long')
+            echo '%ll'
+        ;;
+        (*)
+            echo 1>&2 "unexpected type '${argtype}'"
+            exit 1
+        ;;
+    esac
+}
+
+function parse_args()
+{
+    printformats=()
+
+    for arg
+    do
+        printformats+=("$(print_format "${arg}")")
+    done
+
+    argnames=("${@##* }")
+    argnames=("${argnames[@]#\*}")
+    params_argnames=("${argnames[@]/#/params->}")
+
+    IFS=','
+    allargs="${args[*]}"
+    allargnames="${argnames[*]}"
+    params_allargnames="${params_argnames[*]}"
+    allprintformats="${printformats[*]}"
+    unset IFS
+
+    allargs="${allargs//,/, }"
+    allargnames="${allargnames//,/, }"
+    params_allargnames="${params_allargnames//,/, }"
+    allprintformats="${allprintformats//,/, }"
+}
+
+function generate_spec()
+{
+    local func="${1}"
+    shift
+    local argspecs=()
+
+    for arg
+    do
+        if [[ "${arg}" == void ]]
+        then
+            break
+        fi
+
+        local argtype="${arg%%*( )*([a-zA-Z0-9_])}"
+
+        if [[ -v type_mappings[${argtype}] ]]
+        then
+            argtype="${type_mappings[${argtype}]}"
+        fi
+
+        case "${argtype}"
+        in
+            ('const char *' | 'const char*')
+                argspecs+=('str')
+            ;;
+            (*'*')
+                argspecs+=('ptr')
+            ;;
+            ('unsigned int' | 'int')
+                argspecs+=('long')
+            ;;
+            ('unsigned long long' | 'long long')
+                argspecs+=('int64')
+            ;;
+            (*)
+                echo 1>&2 "unexpected type '${argtype}'"
+                echo 1>&2 "${func}" "${@}"
+                exit 1
+            ;;
+        esac
+    done
+
+    IFS=' ' echo "@ cdecl ${func}(${argspecs[*]})"
+}
+
+function generate_nvmlDeviceGetDriverModel()
+{
+    cat >> nvml.c << 'EOF'
+
+nvmlReturn_t nvmlDeviceGetDriverModel(nvmlDevice_t device, nvmlDriverModel_t *current, nvmlDriverModel_t *pending)
+{
+    nvmlReturn_t result;
+    unsigned int index;
+
+    TRACE("(%p, %p, %p)\n", device, current, pending);
+
+    if (!current && !pending) return NVML_ERROR_INVALID_ARGUMENT;
+
+    /* validate device */
+    result = nvmlDeviceGetIndex(device, &index);
+
+    if (result == NVML_SUCCESS)
+    {
+        if (current) *current = NVML_DRIVER_WDDM;
+        if (pending) *pending = NVML_DRIVER_WDDM;
+    }
+
+    return result;
+}
+EOF
+}
+
+function generate_nvmlDeviceGetSupportedEventTypes()
+{
+    cat >> nvml.c << 'EOF'
+
+nvmlReturn_t nvmlDeviceGetSupportedEventTypes(nvmlDevice_t device, unsigned long long *eventTypes)
+{
+    nvmlReturn_t result;
+    unsigned int index;
+
+    TRACE("(%p, %p)\n", device, eventTypes);
+
+    if (!eventTypes) return NVML_ERROR_INVALID_ARGUMENT;
+
+    /* validate device */
+    result = nvmlDeviceGetIndex(device, &index);
+
+    if (result == NVML_SUCCESS) *eventTypes = 0;
+
+    return result;
+}
+EOF
+}
+
+enum=0
+
+typedef_regex='^typedef ([a-zA-Z0-9_ *]+) (nvml[a-zA-Z0-9_]+_t)$'
+enum_regex='^}? *(nvml[a-zA-Z0-9_]+_t)$'
+
+while IFS='(,);' read -ra proto
+do
+    first="${proto[0]}"
+
+    if [[ ${first} == 'typedef enum nvml'* ]]
+    then
+        if [[ ${enum} == 1 ]]
+        then
+            echo 1>&2 "unexpected '${first}' encountered while processing another"
+            exit 1
+        else
+            enum=1
+            continue
+        fi
+    elif [[ ${first} =~ ${enum_regex} ]]
+    then
+        if [[ ${enum} == 1 ]]
+        then
+            enum=0
+            type_mappings[${BASH_REMATCH[1]}]='unsigned int'
+            continue
+        fi
+    elif [[ ${first} =~ ${typedef_regex} ]]
+    then
+        type_mappings[${BASH_REMATCH[2]}]="${BASH_REMATCH[1]}"
+        continue
+    fi
+
+    if ! [[ "${first}" == 'nvmlReturn_t nvml'* ]]
+    then
+        continue
+    fi
+
+    func="${first#nvmlReturn_t }"
+    func="${func% }"
+    args=("${proto[@]:1}")
+    args=("${args[@]# }")
+    unset 'args[-1]'
+
+    if [[ -v known_funcs[${func}] ]]
+    then
+        generate_spec "${func}" "${args[@]}" >> nvml.spec
+
+        case "${known_funcs[${func}]}"
+        in
+            (NVML_*)
+                if [[ "${args[0]}" == void ]]
+                then
+                    printf '
+nvmlReturn_t %s(void)
+{
+    TRACE("()\\n");
+    return %s;
+}
+' "${func}" "${known_funcs[${func}]}" >> nvml.c
+                else
+                    parse_args "${args[@]}"
+                    printf '
+nvmlReturn_t %s(%s)
+{
+    TRACE("(%s)\\n", %s);
+    return %s;
+}
+' "${func}" "${allargs}" "${allprintformats}" "${allargnames}" "${known_funcs[${func}]}" >> nvml.c
+                fi
+            ;;
+            (stub)
+                if [[ "${args[0]}" == void ]]
+                then
+                    printf '
+nvmlReturn_t %s(void)
+{
+    FIXME("(): stub\\n");
+    return NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+' "${func}" >> nvml.c
+                else
+                    parse_args "${args[@]}"
+                    printf '
+nvmlReturn_t %s(%s)
+{
+    FIXME("(%s): stub\\n", %s);
+    return NVML_ERROR_FUNCTION_NOT_FOUND;
+}
+' "${func}" "${allargs}" "${allprintformats}" "${allargnames}" >> nvml.c
+                fi
+            ;;
+            (custom)
+                "generate_${func}"
+            ;;
+            (passthrough)
+                if [[ "${args[0]}" == void ]]
+                then
+                    printf '
+nvmlReturn_t %s(void)
+{
+    TRACE("()\\n");
+    return (nvmlReturn_t)NVML_CALL(%s, NULL);
+}
+' "${func}" "${func}" >> nvml.c
+
+                    printf '
+static nvmlReturn_t (*p%s)(void) = NULL;
+
+static NTSTATUS wine_%s(void *args)
+{
+    return (NTSTATUS)(p%s
+        ? p%s()
+        : NVML_ERROR_FUNCTION_NOT_FOUND);
+}
+' "${func}" "${func}" "${func}" "${func}" >> nvml_unixlib.c
+                else
+                    parse_args "${args[@]}"
+
+                    {
+                        printf '\nstruct %s_params\n{\n' "${func}"
+
+                        for arg in "${args[@]}"
+                        do
+                            printf '    %s;\n' "${arg}"
+                        done
+
+                        printf '};\n'
+                    } >> nvml_private.h
+
+                    printf '
+nvmlReturn_t %s(%s)
+{
+    struct %s_params params = { %s };
+    TRACE("(%s)\\n", %s);
+    return (nvmlReturn_t)NVML_CALL(%s, &params);
+}
+' "${func}" "${allargs}" "${func}" "${allargnames}" "${allprintformats}" "${allargnames}" "${func}" >> nvml.c
+
+                    printf '
+static nvmlReturn_t (*p%s)(%s) = NULL;
+' "${func}" "${allargs}" >> nvml_unixlib.c
+
+                    printf '
+static NTSTATUS wine_%s(void *args)
+{
+    struct %s_params *params = args;
+    return (NTSTATUS)(p%s
+        ? p%s(%s)
+        : NVML_ERROR_FUNCTION_NOT_FOUND);
+}
+' "${func}" "${func}" "${func}" "${func}" "${params_allargnames}" >> nvml_unixlib.c
+                fi
+
+                calls+=("${func}")
+            ;;
+            (*)
+                echo 1>&2 "action '${known_funcs[${func}]}' found for function '${func}' not supported, ignoring"
+            ;;
+        esac
+    else
+        echo 1>&2 "function '${func}' not supported, ignoring"
+    fi
+done < "nvml_${version}.i.h"
+
+{
+    printf '
+enum nvml_funcs
+{
+    unix_attach,
+    unix_detach,
+'
+
+    for call in "${calls[@]}"
+    do
+        printf '    unix_%s,\n' "${call}"
+    done
+
+    printf '};\n'
+} >> nvml_private.h
+
+cat >> nvml.c << 'EOF'
+
+BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
+{
+    TRACE("(%p, %lu, %p)\n", instance, (unsigned long)reason, reserved);
+
+    switch (reason)
+    {
+        case DLL_PROCESS_ATTACH:
+            DisableThreadLibraryCalls(instance);
+            if (NtQueryVirtualMemory(GetCurrentProcess(), instance, MemoryWineUnixFuncs, &nvml_handle, sizeof(nvml_handle), NULL))
+                return FALSE;
+            if (NVML_CALL(attach, NULL))
+                return FALSE;
+            break;
+        case DLL_PROCESS_DETACH:
+            if (reserved)
+                break;
+            NVML_CALL(detach, NULL);
+            break;
+    }
+
+    return TRUE;
+}
+EOF
+
+{
+    printf '
+static NTSTATUS attach(void *args)
+{
+    if (!(libnvidia_ml_handle = dlopen("libnvidia-ml.so.1", RTLD_NOW))) return STATUS_DLL_NOT_FOUND;
+
+#define TRY_LOAD_FUNCPTR(f) *(void **)(&p##f) = dlsym(libnvidia_ml_handle, #f)
+
+'
+
+    for call in "${calls[@]}"
+    do
+        printf '    TRY_LOAD_FUNCPTR(%s);\n' "${call}"
+    done
+
+    printf '
+#undef TRY_LOAD_FUNCPTR
+
+    return STATUS_SUCCESS;
+}
+
+static NTSTATUS detach(void *args)
+{
+    dlclose(libnvidia_ml_handle);
+    return STATUS_SUCCESS;
+}
+'
+    printf '
+const unixlib_entry_t __wine_unix_call_funcs[] =
+{
+    attach,
+    detach,
+'
+
+    for call in "${calls[@]}"
+    do
+        printf '    wine_%s,\n' "${call}"
+    done
+
+    printf '};\n'
+} >> nvml_unixlib.c
+
+LC_ALL=C sort -o nvml.spec nvml.spec
