@@ -694,8 +694,11 @@ nvmlReturn_t %s(%s)
                     printf '
 nvmlReturn_t %s(void)
 {
+    nvmlReturn_t result;
     TRACE("()\\n");
-    return (nvmlReturn_t)NVML_CALL(%s, NULL);
+    return NVML_CALL(%s, &result)
+        ? NVML_ERROR_UNKNOWN
+        : result;
 }
 ' "${func}" "${func}" >> nvml.c
 
@@ -704,9 +707,11 @@ static nvmlReturn_t (*p%s)(void) = NULL;
 
 static NTSTATUS wine_%s(void *args)
 {
-    return (NTSTATUS)(p%s
+    nvmlReturn_t *result = args;
+    *result = (p%s
         ? p%s()
         : NVML_ERROR_FUNCTION_NOT_FOUND);
+    return STATUS_SUCCESS;
 }
 ' "${func}" "${func}" "${func}" "${func}" >> nvml_unixlib.c
                 else
@@ -720,15 +725,17 @@ static NTSTATUS wine_%s(void *args)
                             printf '    %s;\n' "${arg}"
                         done
 
-                        printf '};\n'
+                        printf '    nvmlReturn_t _result;\n};\n'
                     } >> nvml_private.h
 
                     printf '
 nvmlReturn_t %s(%s)
 {
-    struct %s_params params = { %s };
+    struct %s_params params = { %s, 0 };
     TRACE("(%s)\\n", %s);
-    return (nvmlReturn_t)NVML_CALL(%s, &params);
+    return NVML_CALL(%s, &params)
+        ? NVML_ERROR_UNKNOWN
+        : params._result;
 }
 ' "${func}" "${allargs}" "${func}" "${allargnames}" "${allprintformats}" "${allargnames}" "${func}" >> nvml.c
 
@@ -740,9 +747,10 @@ static nvmlReturn_t (*p%s)(%s) = NULL;
 static NTSTATUS wine_%s(void *args)
 {
     struct %s_params *params = args;
-    return (NTSTATUS)(p%s
+    params->_result = (p%s
         ? p%s(%s)
         : NVML_ERROR_FUNCTION_NOT_FOUND);
+    return STATUS_SUCCESS;
 }
 ' "${func}" "${func}" "${func}" "${func}" "${params_allargnames}" >> nvml_unixlib.c
                 fi
