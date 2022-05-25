@@ -1,3 +1,0 @@
-[submodule "submodules/wine"]
-	path = submodules/wine
-	url = https://github.com/wine-mirror/wine.git
