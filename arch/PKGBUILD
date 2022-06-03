@@ -5,24 +5,14 @@ pkgdesc='NVIDIA Management Library wrapper for Wine'
 arch=('x86_64')
 url='https://github.com/Saancreed/wine-nvml'
 license=('LGPL2.1')
-makedepends=('git' 'meson' 'ninja' 'wine')
-source=("git+https://github.com/Saancreed/wine-nvml.git#tag=v${pkgver}"
-        'git+https://github.com/NVIDIA/nvidia-settings.git'
-        'git+https://github.com/wine-mirror/wine.git')
-sha512sums=('SKIP' 'SKIP' 'SKIP')
+makedepends=('git' 'meson' 'mingw-w64-gcc' 'ninja' 'wine')
+options=('!buildflags' '!strip')
+source=("git+https://github.com/Saancreed/wine-nvml.git${_fragment:+#${_fragment}}")
+sha512sums=('SKIP')
 
 prepare()
 {
-    cd "${srcdir}/wine-nvml"
-
-    git submodule init
-
-    for _submodule in nvidia-settings wine
-    do
-        git config "submodule.submodules/${_submodule}.url" "${srcdir}/${_submodule}"
-    done
-
-    git submodule update
+    cd "${srcdir}/wine-nvml/src" && ./make_nvml
 }
 
 pkgver()
@@ -34,29 +24,56 @@ build()
 {
     cd "${srcdir}/wine-nvml"
 
-    meson setup ../build64 \
-        --cross-file ./build-wine64.txt \
+    meson setup \
+        --cross-file ./cross-mingw64.txt \
         --prefix /usr \
         --libdir lib \
         --buildtype release \
-        --strip
+        --strip \
+        ../build-mingw64 .
 
-    ninja -C ../build64
+    ninja -C ../build-mingw64
 
-    meson setup ../build32 \
-        --cross-file ./build-wine32.txt \
+    meson setup \
+        --cross-file ./cross-wine64.txt \
+        --prefix /usr \
+        --libdir lib \
+        --buildtype release \
+        --strip \
+        ../build-wine64 .
+
+    ninja -C ../build-wine64
+
+    meson setup \
+        --cross-file ./cross-mingw32.txt \
         --prefix /usr \
         --libdir lib32 \
         --buildtype release \
-        --strip
+        --strip \
+        ../build-mingw32 .
 
-    ninja -C ../build32
+    ninja -C ../build-mingw32
+
+    meson setup \
+        --cross-file ./cross-wine32.txt \
+        --prefix /usr \
+        --libdir lib32 \
+        --buildtype release \
+        --strip \
+        ../build-wine32 .
+
+    ninja -C ../build-wine32
 }
 
 package()
 {
-    depends=('lib32-nvidia-utils' 'nvidia-utils' 'wine')
+    depends=('nvidia-utils' 'wine')
+    optdepends=('lib32-nvidia-utils')
 
-    DESTDIR="${pkgdir}" ninja -C "${srcdir}/build64" install
-    DESTDIR="${pkgdir}" ninja -C "${srcdir}/build32" install
+    DESTDIR="${pkgdir}" ninja -C "${srcdir}/build-mingw32" install
+    DESTDIR="${pkgdir}" ninja -C "${srcdir}/build-wine32" install
+    DESTDIR="${pkgdir}" ninja -C "${srcdir}/build-mingw64" install
+    DESTDIR="${pkgdir}" ninja -C "${srcdir}/build-wine64" install
+
+    find "${pkgdir}" -name '*.dll.a' -delete
 }
