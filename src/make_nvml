@@ -393,10 +393,13 @@ const char* nvmlErrorString(nvmlReturn_t result)
         : params.errorString;
 }
 
-nvmlReturn_t nvmlInternalGetExportTable(void *ptr, GUID *guid)
+static const size_t export_table = sizeof(size_t);
+
+nvmlReturn_t nvmlInternalGetExportTable(const size_t **ptr, const GUID *guid)
 {
     FIXME("(%p, %s): stub\n", ptr, debugstr_guid(guid));
-    return NVML_ERROR_INVALID_ARGUMENT;
+    *ptr = &export_table;
+    return NVML_SUCCESS;
 }
 EOF
 
