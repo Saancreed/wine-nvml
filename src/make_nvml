@@ -389,7 +389,7 @@ const char* nvmlErrorString(nvmlReturn_t result)
     struct nvmlErrorString_params params = { result, NULL };
     TRACE("(%u)\n", result);
     return NVML_CALL(nvmlErrorString, &params)
-        ? NULL
+        ? "Unknown Error"
         : params.errorString;
 }
 
@@ -422,7 +422,7 @@ static const char* (*pnvmlErrorString)(nvmlReturn_t result) = NULL;
 static NTSTATUS wine_nvmlErrorString(void *args)
 {
     struct nvmlErrorString_params *params = args;
-    params->errorString = pnvmlErrorString ? pnvmlErrorString(params->result) : NULL;
+    params->errorString = pnvmlErrorString ? pnvmlErrorString(params->result) : "Unknown Error";
     return STATUS_SUCCESS;
 }
 EOF
