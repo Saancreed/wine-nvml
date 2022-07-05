@@ -16,7 +16,7 @@ Please refer to `build.sh` helper script for automated (but simplified and not v
 
 ## Installing
 
-In order for Wine to find and make use of `wine-nvml`, built wrapper libraries must be placed alongside other Wine PEs and Unixlibs.
+In order for Wine to find and make use of `wine-nvml`, built wrapper libraries must either be placed alongside other Wine PEs and Unixlibs or have their location exported in `WINEDLLPATH` environment variable.
 
 **Wine / Proton versions older than 7.0 are not supported.**
 
@@ -50,6 +50,21 @@ It is possible that Proton won't copy `nvml.dll` into game's prefixes on its own
 build-mingw32/src/nvml.dll → ${compatdata}/pfx/drive_c/windows/syswow64/nvml.dll
 build-mingw64/src/nvml.dll → ${compatdata}/pfx/drive_c/windows/system32/nvml.dll
 ```
+
+### Using `WINEDLLPATH`
+
+Alternatively, it is possible to avoid copying/linking `wine-nvml` libraries into Wine installation directory by exporting `WINEDLLPATH` environment variable with a list of `:`–separated paths to `wine` directories containing `{x86_64,i386}-{unix,windows}`, as produced by `ninja install` after the build. For example, assuming that `wine-nvml` files exist in the filesystem like so:
+
+```sh
+/path/to/wine-nvml/lib32/wine/i386-unix/nvml.so
+/path/to/wine-nvml/lib32/wine/i386-windows/nvml.dll
+/path/to/wine-nvml/lib64/wine/x86_64-unix/nvml.so
+/path/to/wine-nvml/lib64/wine/x86_64-windows/nvml.dll
+```
+
+Then exporting `WINEDLLPATH=/path/to/wine-nvml/lib64/wine:/path/to/wine-nvml/lib32/wine` will allow Wine to find `wine-nvml` in that location.
+
+Note that `nvml.dll` should still be copied into each Wine prefix, but with correct `WINEDLLPATH` (and `WINEPREFIX`) exported, executing `wineboot -u` should be enough to do this for you.
 
 ## Usage
 
