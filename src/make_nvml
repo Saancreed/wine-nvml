@@ -22,7 +22,7 @@
 set -euo pipefail
 shopt -s extglob
 
-version="${1:-515.43.04}"
+version="${1:-520.56.06}"
 
 header_url="https://raw.githubusercontent.com/NVIDIA/nvidia-settings/${version}/src/nvml.h"
 
@@ -115,8 +115,11 @@ declare -A known_funcs=(
     [nvmlDeviceSetDefaultAutoBoostedClocksEnabled]='NVML_ERROR_NO_PERMISSION' # requires root
     [nvmlDeviceGetFanSpeed]='passthrough'
     [nvmlDeviceGetFanSpeed_v2]='passthrough'
+    [nvmlDeviceGetTargetFanSpeed]='passthrough'
     [nvmlDeviceSetDefaultFanSpeed_v2]='passthrough'
     [nvmlDeviceGetMinMaxFanSpeed]='passthrough'
+    [nvmlDeviceGetFanControlPolicy_v2]='passthrough'
+    [nvmlDeviceSetFanControlPolicy]='passthrough' # requires privileged user
     [nvmlDeviceGetNumFans]='passthrough'
     [nvmlDeviceGetTemperature]='passthrough'
     [nvmlDeviceGetTemperatureThreshold]='passthrough'
@@ -131,6 +134,9 @@ declare -A known_funcs=(
     [nvmlDeviceGetPowerManagementLimitConstraints]='passthrough'
     [nvmlDeviceGetPowerManagementDefaultLimit]='passthrough'
     [nvmlDeviceGetPowerUsage]='passthrough'
+    [nvmlDeviceGetPowerMode]='passthrough'
+    [nvmlDeviceGetSupportedPowerModes]='passthrough'
+    [nvmlDeviceSetPowerMode]='passthrough'
     [nvmlDeviceGetTotalEnergyConsumption]='passthrough'
     [nvmlDeviceGetEnforcedPowerLimit]='passthrough'
     [nvmlDeviceGetGpuOperationMode]='passthrough'
@@ -321,8 +327,18 @@ declare -A known_funcs=(
     [nvmlDeviceSetFanSpeed_v2]='passthrough'
     [nvmlDeviceGetGpcClkVfOffset]='passthrough'
     [nvmlDeviceSetGpcClkVfOffset]='passthrough'
+    [nvmlDeviceGetMemClkVfOffset]='passthrough'
+    [nvmlDeviceSetMemClkVfOffset]='passthrough' # requires elevated privileges
     [nvmlDeviceGetMinMaxClockOfPState]='passthrough'
     [nvmlDeviceGetSupportedPerformanceStates]='passthrough'
+    [nvmlDeviceGetGpcClkMinMaxVfOffset]='passthrough'
+    [nvmlDeviceGetMemClkMinMaxVfOffset]='passthrough'
+    # GPM Functions
+    [nvmlGpmMetricsGet]='passthrough'
+    [nvmlGpmSampleFree]='passthrough'
+    [nvmlGpmSampleAlloc]='passthrough'
+    [nvmlGpmSampleGet]='passthrough'
+    [nvmlGpmQueryDeviceSupport]='passthrough'
     # API versioning support
     [nvmlInit]='passthrough'
     [nvmlDeviceGetCount]='passthrough'
