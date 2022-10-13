@@ -12,15 +12,19 @@ jobs:
   build-arch:
     name: Build on Arch
     runs-on: ubuntu-latest
+    container: archlinux:base-devel
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+          echo -e '\n\n[multilib]\nInclude = /etc/pacman.d/mirrorlist\n' >> /etc/pacman.conf
+          pacman-key --init
+          pacman -Syu --needed --noconfirm mingw-w64-gcc meson ninja wine
       - name: Build
-        uses: Joshua-Ashton/arch-mingw-github-action@v8
-        with:
-          command: |
-            export DESTDIR="${PWD}"
-            ./build.sh --install
+        run: |
+          export DESTDIR="${PWD}"
+          ./build.sh --install
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
