@@ -9,20 +9,46 @@ on:
       - master
 
 jobs:
-  ci:
-    name: Build
+  build-arch:
+    name: Build on Arch
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Build
-        uses: Joshua-Ashton/arch-mingw-github-action@v7
+        uses: Joshua-Ashton/arch-mingw-github-action@v8
         with:
           command: |
             export DESTDIR="${PWD}"
             ./build.sh --install
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
-          name: wine-nvml
+          name: wine-nvml-arch
+          path: usr/**
+  build-ubuntu:
+    name: Build on Ubuntu
+    runs-on: ubuntu-latest
+    container: ubuntu:jammy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update
+          apt-get install -y wget
+          wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/jammy/winehq-jammy.sources
+          wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
+          dpkg --add-architecture i386
+          apt-get update
+          apt-get -y install curl gcc-multilib mingw-w64 meson ninja-build wine-devel-amd64 wine-devel-i386 wine-devel-dev winehq-devel
+      - name: Build
+        run: |
+          export DESTDIR="${PWD}"
+          ./build.sh --install
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: wine-nvml-ubuntu-jammy
           path: usr/**
