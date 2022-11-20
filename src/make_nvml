@@ -22,7 +22,7 @@
 set -euo pipefail
 shopt -s extglob
 
-version="${1:-520.56.06}"
+version="${1:-525.53}"
 
 header_url="https://raw.githubusercontent.com/NVIDIA/nvidia-settings/${version}/src/nvml.h"
 
@@ -96,6 +96,7 @@ declare -A known_funcs=(
     [nvmlDeviceGetPersistenceMode]='NVML_ERROR_NOT_SUPPORTED' # Linux only
     [nvmlDeviceGetPciInfo_v3]='passthrough'
     [nvmlDeviceGetMaxPcieLinkGeneration]='passthrough'
+    [nvmlDeviceGetGpuMaxPcieLinkGeneration]='passthrough'
     [nvmlDeviceGetMaxPcieLinkWidth]='passthrough'
     [nvmlDeviceGetCurrPcieLinkGeneration]='passthrough'
     [nvmlDeviceGetCurrPcieLinkWidth]='passthrough'
@@ -234,6 +235,7 @@ declare -A known_funcs=(
     [nvmlDeviceDiscoverGpus]='NVML_ERROR_NOT_SUPPORTED' # Linux only, requires root
     # Field Value Queries
     [nvmlDeviceGetFieldValues]='passthrough'
+    [nvmlDeviceClearFieldValues]='passthrough'
     # vGPU APIs
     [nvmlDeviceGetVirtualizationMode]='passthrough'
     [nvmlDeviceGetHostVgpuMode]='passthrough'
@@ -245,6 +247,8 @@ declare -A known_funcs=(
     [nvmlDeviceGetGspFirmwareVersion]='passthrough'
     [nvmlDeviceGetGspFirmwareMode]='passthrough'
     # vGPU Management
+    [nvmlGetVgpuDriverCapabilities]='passthrough'
+    [nvmlDeviceGetVgpuCapabilities]='passthrough'
     [nvmlDeviceGetSupportedVgpus]='passthrough'
     [nvmlDeviceGetCreatableVgpus]='passthrough'
     [nvmlVgpuTypeGetClass]='passthrough'
@@ -281,6 +285,10 @@ declare -A known_funcs=(
     [nvmlDeviceGetVgpuMetadata]='passthrough'
     [nvmlGetVgpuCompatibility]='passthrough'
     [nvmlDeviceGetPgpuMetadataString]='passthrough'
+    [nvmlDeviceGetVgpuSchedulerLog]='passthrough'
+    [nvmlDeviceGetVgpuSchedulerState]='passthrough'
+    [nvmlDeviceSetVgpuSchedulerState]='passthrough'
+    [nvmlDeviceGetVgpuSchedulerCapabilities]='passthrough'
     [nvmlGetVgpuVersion]='passthrough'
     [nvmlSetVgpuVersion]='passthrough'
     # vGPU Utilization and Accounting
@@ -310,7 +318,9 @@ declare -A known_funcs=(
     [nvmlGpuInstanceGetComputeInstanceProfileInfo]='NVML_ERROR_NO_PERMISSION' # Linux only
     [nvmlGpuInstanceGetComputeInstanceProfileInfoV]='NVML_ERROR_NO_PERMISSION' # Linux only
     [nvmlGpuInstanceGetComputeInstanceRemainingCapacity]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
+    [nvmlGpuInstanceGetComputeInstancePossiblePlacements]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
     [nvmlGpuInstanceCreateComputeInstance]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
+    [nvmlGpuInstanceCreateComputeInstanceWithPlacement]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
     [nvmlComputeInstanceDestroy]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
     [nvmlGpuInstanceGetComputeInstances]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
     [nvmlGpuInstanceGetComputeInstanceById]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
@@ -333,12 +343,19 @@ declare -A known_funcs=(
     [nvmlDeviceGetSupportedPerformanceStates]='passthrough'
     [nvmlDeviceGetGpcClkMinMaxVfOffset]='passthrough'
     [nvmlDeviceGetMemClkMinMaxVfOffset]='passthrough'
+    [nvmlDeviceGetGpuFabricInfo]='passthrough'
     # GPM Functions
     [nvmlGpmMetricsGet]='passthrough'
     [nvmlGpmSampleFree]='passthrough'
     [nvmlGpmSampleAlloc]='passthrough'
     [nvmlGpmSampleGet]='passthrough'
+    [nvmlGpmMigSampleGet]='passthrough'
     [nvmlGpmQueryDeviceSupport]='passthrough'
+    # Counter Collection Unit
+    [nvmlDeviceCcuGetStreamState]='passthrough' # always behaves like TCC on Windows
+    [nvmlDeviceCcuSetStreamState]='passthrough' # always behaves like TCC on Windows
+
+    [nvmlDeviceSetNvLinkDeviceLowPowerThreshold]='passthrough'
     # API versioning support
     [nvmlInit]='passthrough'
     [nvmlDeviceGetCount]='passthrough'
