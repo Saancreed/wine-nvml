@@ -476,12 +476,7 @@ function print_format()
 {
     local argtype="${1%%*( )*([a-zA-Z0-9_])}"
 
-    if [[ -v type_mappings[${argtype}] ]]
-    then
-        argtype="${type_mappings[${argtype}]}"
-    fi
-
-    case "${argtype}"
+    case "${type_mappings[${argtype}]:-${argtype}}"
     in
         ('const char *' | 'const char*')
             echo '%s'
@@ -489,7 +484,7 @@ function print_format()
         (*'*')
             echo '%p'
         ;;
-        ('unsigned int')
+        ('unsigned int' | 'enum')
             echo '%u'
         ;;
         ('int')
@@ -549,12 +544,7 @@ function generate_spec()
 
         local argtype="${arg%%*( )*([a-zA-Z0-9_])}"
 
-        if [[ -v type_mappings[${argtype}] ]]
-        then
-            argtype="${type_mappings[${argtype}]}"
-        fi
-
-        case "${argtype}"
+        case "${type_mappings[${argtype}]:-${argtype}}"
         in
             ('const char *' | 'const char*')
                 argspecs+=('str')
@@ -562,7 +552,7 @@ function generate_spec()
             (*'*')
                 argspecs+=('ptr')
             ;;
-            ('unsigned int' | 'int')
+            ('unsigned int' | 'int' | 'enum')
                 argspecs+=('long')
             ;;
             ('unsigned long long' | 'long long')
@@ -653,7 +643,7 @@ do
         if [[ ${enum} == 1 ]]
         then
             enum=0
-            type_mappings[${BASH_REMATCH[1]}]='unsigned int'
+            type_mappings[${BASH_REMATCH[1]}]='enum'
             continue
         fi
     elif [[ ${first} =~ ${typedef_regex} ]]
