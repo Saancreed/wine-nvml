@@ -784,11 +784,13 @@ static NTSTATUS wine_%s(void *args)
                 calls+=("${func}")
             ;;
             (*)
-                echo 1>&2 "action '${known_funcs[${func}]}' found for function '${func}' not supported, ignoring"
+                echo 1>&2 "-${func} (action '${known_funcs[${func}]}' not supported)"
+                continue
             ;;
         esac
+        echo 1>&2 "${func}"
     else
-        echo 1>&2 "function '${func}' not supported, ignoring"
+        echo 1>&2 "-${func} (function not recognized)"
     fi
 done < "nvml_${version}.i.h"
 
