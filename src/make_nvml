@@ -22,7 +22,7 @@
 set -euo pipefail
 shopt -s extglob
 
-version="${1:-535.54.03}"
+version="${1:-535.104.05}"
 
 header_url="https://raw.githubusercontent.com/NVIDIA/nvidia-settings/${version}/src/nvml.h"
 
@@ -178,6 +178,7 @@ declare -A known_funcs=(
     [nvmlDeviceGetComputeRunningProcesses_v3]='passthrough' # exposes Linux pids
     [nvmlDeviceGetGraphicsRunningProcesses_v3]='passthrough' # exposes Linux pids
     [nvmlDeviceGetMPSComputeRunningProcesses_v3]='passthrough' # exposes Linux pids
+    [nvmlDeviceGetRunningProcessDetailList]='passthrough' # exposes Linux pids
     [nvmlDeviceOnSameBoard]='passthrough'
     [nvmlDeviceGetAPIRestriction]='passthrough'
     [nvmlDeviceGetSamples]='passthrough'
