@@ -436,10 +436,81 @@ WINE_DEFAULT_DEBUG_CHANNEL(nvml);
 
 #define NVML_CALL(func, params) WINE_UNIX_CALL(unix_ ## func, params)
 
+#if defined(_WIN32) && !defined(_WIN64)
+#include <stdbool.h>
+#include <stdlib.h>
+#include <strings.h>
+#include "libloaderapi.h"
+
+static bool is_caller_nvapi(void *ret)
+{
+    char path[MAX_PATH];
+    HMODULE mod;
+    DWORD len;
+
+    return GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, ret, &mod)
+        && ((len = GetModuleFileNameA(mod, path, MAX_PATH)) >= 9)
+        && !strcasecmp(path + len - 9, "nvapi.dll");
+}
+
+static bool is_nvml_allowed(void *ret)
+{
+    static bool checked = false;
+    static int allowed = -1;
+
+    if (!checked)
+    {
+        const char *env = getenv("WINE_NVML_ALLOW_32BIT");
+
+        if (env && *env && !env[1])
+        {
+            switch (*env)
+            {
+                case '0':
+                case '1':
+                    allowed = *env - '0';
+            }
+        }
+
+        if (allowed == 0)
+            WARN("32-bit NVML is not allowed\n");
+        else if (allowed == 1)
+            WARN("32-bit NVML is allowed unconditionally, here be dragons\n");
+        else
+            WARN("32-bit NVML is allowed only for calls made from NVAPI, set WINE_NVML_ALLOW_32BIT to 0 or 1 to (dis)allow it unconditionally\n");
+
+        checked = true;
+    }
+
+    switch (allowed)
+    {
+        case 0:
+            return false;
+        case 1:
+            return true;
+        default:
+            return is_caller_nvapi(ret);
+    }
+}
+
+#define NVML_RETURN_IF_NOT_ALLOWED_WITH_RESULT(result) \
+    if (!is_nvml_allowed(__builtin_extract_return_addr(__builtin_return_address(0)))) \
+        return result
+
+#define NVML_RETURN_IF_NOT_ALLOWED NVML_RETURN_IF_NOT_ALLOWED_WITH_RESULT(NVML_ERROR_LIBRARY_NOT_FOUND)
+#else
+#define NVML_RETURN_IF_NOT_ALLOWED_WITH_RESULT(result)
+#define NVML_RETURN_IF_NOT_ALLOWED
+#endif
+
 const char* nvmlErrorString(nvmlReturn_t result)
 {
     struct nvmlErrorString_params params = { result, NULL };
+
     TRACE("(%u)\n", result);
+
+    NVML_RETURN_IF_NOT_ALLOWED_WITH_RESULT("Unknown Error");
+
     return NVML_CALL(nvmlErrorString, &params)
         ? "Unknown Error"
         : params.errorString;
@@ -450,7 +521,11 @@ static const size_t export_table = sizeof(size_t);
 nvmlReturn_t nvmlInternalGetExportTable(const size_t **ptr, const GUID *guid)
 {
     FIXME("(%p, %s): stub\n", ptr, debugstr_guid(guid));
+
+    NVML_RETURN_IF_NOT_ALLOWED;
+
     *ptr = &export_table;
+
     return NVML_SUCCESS;
 }
 EOF
@@ -601,6 +676,8 @@ nvmlReturn_t nvmlDeviceGetDriverModel(nvmlDevice_t device, nvmlDriverModel_t *cu
 
     TRACE("(%p, %p, %p)\n", device, current, pending);
 
+    NVML_RETURN_IF_NOT_ALLOWED;
+
     if (!current && !pending) return NVML_ERROR_INVALID_ARGUMENT;
 
     /* validate device */
@@ -627,6 +704,8 @@ nvmlReturn_t nvmlDeviceGetSupportedEventTypes(nvmlDevice_t device, unsigned long
     unsigned int index;
 
     TRACE("(%p, %p)\n", device, eventTypes);
+
+    NVML_RETURN_IF_NOT_ALLOWED;
 
     if (!eventTypes) return NVML_ERROR_INVALID_ARGUMENT;
 
@@ -697,6 +776,9 @@ do
 nvmlReturn_t %s(void)
 {
     TRACE("()\\n");
+
+    NVML_RETURN_IF_NOT_ALLOWED;
+
     return %s;
 }
 ' "${func}" "${known_funcs[${func}]}" >> nvml.c
@@ -706,6 +788,9 @@ nvmlReturn_t %s(void)
 nvmlReturn_t %s(%s)
 {
     TRACE("(%s)\\n", %s);
+
+    NVML_RETURN_IF_NOT_ALLOWED;
+
     return %s;
 }
 ' "${func}" "${allargs}" "${allprintformats}" "${allargnames}" "${known_funcs[${func}]}" >> nvml.c
@@ -718,6 +803,9 @@ nvmlReturn_t %s(%s)
 nvmlReturn_t %s(void)
 {
     FIXME("(): stub\\n");
+
+    NVML_RETURN_IF_NOT_ALLOWED;
+
     return NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 ' "${func}" >> nvml.c
@@ -727,6 +815,9 @@ nvmlReturn_t %s(void)
 nvmlReturn_t %s(%s)
 {
     FIXME("(%s): stub\\n", %s);
+
+    NVML_RETURN_IF_NOT_ALLOWED;
+
     return NVML_ERROR_FUNCTION_NOT_FOUND;
 }
 ' "${func}" "${allargs}" "${allprintformats}" "${allargnames}" >> nvml.c
@@ -742,7 +833,11 @@ nvmlReturn_t %s(%s)
 nvmlReturn_t %s(void)
 {
     nvmlReturn_t result;
+
     TRACE("()\\n");
+
+    NVML_RETURN_IF_NOT_ALLOWED;
+
     return NVML_CALL(%s, &result)
         ? NVML_ERROR_UNKNOWN
         : result;
@@ -779,7 +874,11 @@ static NTSTATUS wine_%s(void *args)
 nvmlReturn_t %s(%s)
 {
     struct %s_params params = { %s, 0 };
+
     TRACE("(%s)\\n", %s);
+
+    NVML_RETURN_IF_NOT_ALLOWED;
+
     return NVML_CALL(%s, &params)
         ? NVML_ERROR_UNKNOWN
         : params._result;
