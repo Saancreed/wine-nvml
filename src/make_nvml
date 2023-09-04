@@ -434,9 +434,7 @@ cat > nvml.c << 'EOF'
 
 WINE_DEFAULT_DEBUG_CHANNEL(nvml);
 
-static unixlib_handle_t nvml_handle = 0;
-
-#define NVML_CALL(func, params) __wine_unix_call(nvml_handle, unix_ ## func, params)
+#define NVML_CALL(func, params) WINE_UNIX_CALL(unix_ ## func, params)
 
 const char* nvmlErrorString(nvmlReturn_t result)
 {
@@ -461,6 +459,8 @@ cat > nvml_unixlib.c << 'EOF'
 #if 0
 #pragma makedep unix
 #endif
+
+#define WINE_UNIX_LIB
 
 #include <stdarg.h>
 #include <dlfcn.h>
@@ -841,7 +841,7 @@ BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
     {
         case DLL_PROCESS_ATTACH:
             DisableThreadLibraryCalls(instance);
-            if (NtQueryVirtualMemory(GetCurrentProcess(), instance, MemoryWineUnixFuncs, &nvml_handle, sizeof(nvml_handle), NULL))
+            if (__wine_init_unix_call())
                 return FALSE;
             if (NVML_CALL(attach, NULL))
                 return FALSE;
