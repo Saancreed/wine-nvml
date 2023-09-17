@@ -6,50 +6,30 @@ srcdir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
 (cd "${srcdir}/src" && ./make_nvml)
 
-meson setup \
-    --cross-file "${srcdir}"/cross-mingw64.txt \
-    --prefix /usr \
-    --libdir lib64 \
-    --buildtype release \
-    --strip \
-    ./build-mingw64 "${srcdir}"
-
-ninja -C ./build-mingw64
+BITS="${BITS:-64}"
 
 meson setup \
-    --cross-file "${srcdir}"/cross-wine64.txt \
+    --cross-file "${srcdir}/cross-mingw${BITS}.txt" \
     --prefix /usr \
-    --libdir lib64 \
+    --libdir "lib${BITS}" \
     --buildtype release \
     --strip \
-    ./build-wine64 "${srcdir}"
+    "./build-mingw${BITS}" "${srcdir}"
 
-ninja -C ./build-wine64
+ninja -C "./build-mingw${BITS}"
 
 meson setup \
-    --cross-file "${srcdir}"/cross-mingw32.txt \
+    --cross-file "${srcdir}/cross-wine${BITS}.txt" \
     --prefix /usr \
-    --libdir lib32 \
+    --libdir "lib${BITS}" \
     --buildtype release \
     --strip \
-    ./build-mingw32 "${srcdir}"
+    "./build-wine${BITS}" "${srcdir}"
 
-ninja -C ./build-mingw32
-
-meson setup \
-    --cross-file "${srcdir}"/cross-wine32.txt \
-    --prefix /usr \
-    --libdir lib32 \
-    --buildtype release \
-    --strip \
-    ./build-wine32 "${srcdir}"
-
-ninja -C ./build-wine32
+ninja -C "./build-wine${BITS}"
 
 if [[ "${1:-}" == --install ]]
 then
-    ninja -C ./build-mingw32 install
-    ninja -C ./build-wine32 install
-    ninja -C ./build-mingw64 install
-    ninja -C ./build-wine64 install
+    ninja -C "./build-mingw${BITS}" install
+    ninja -C "./build-wine${BITS}" install
 fi

@@ -43,35 +43,12 @@ build()
         ../build-wine64 .
 
     ninja -C ../build-wine64
-
-    meson setup \
-        --cross-file ./cross-mingw32.txt \
-        --prefix /usr \
-        --libdir lib32 \
-        --buildtype release \
-        --strip \
-        ../build-mingw32 .
-
-    ninja -C ../build-mingw32
-
-    meson setup \
-        --cross-file ./cross-wine32.txt \
-        --prefix /usr \
-        --libdir lib32 \
-        --buildtype release \
-        --strip \
-        ../build-wine32 .
-
-    ninja -C ../build-wine32
 }
 
 package()
 {
     depends=('nvidia-utils' 'wine')
-    optdepends=('lib32-nvidia-utils')
 
-    DESTDIR="${pkgdir}" ninja -C "${srcdir}/build-mingw32" install
-    DESTDIR="${pkgdir}" ninja -C "${srcdir}/build-wine32" install
     DESTDIR="${pkgdir}" ninja -C "${srcdir}/build-mingw64" install
     DESTDIR="${pkgdir}" ninja -C "${srcdir}/build-wine64" install
 
