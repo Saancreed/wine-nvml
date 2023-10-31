@@ -22,7 +22,7 @@
 set -euo pipefail
 shopt -s extglob
 
-version="${1:-535.104.05}"
+version="${1:-545.23.06}"
 
 header_url="https://raw.githubusercontent.com/NVIDIA/nvidia-settings/${version}/src/nvml.h"
 
@@ -50,6 +50,8 @@ declare -A known_funcs=(
     [nvmlSystemGetCudaDriverVersion]='passthrough'
     [nvmlSystemGetCudaDriverVersion_v2]='passthrough'
     [nvmlSystemGetProcessName]='passthrough' # handles Linux pids instead of Windows pids
+    [nvmlSystemGetHicVersion]='passthrough'
+    [nvmlSystemGetTopologyGpuSet]='NVML_ERROR_NOT_SUPPORTED' # Linux only
     # Unit Queries
     [nvmlUnitGetCount]='passthrough'
     [nvmlUnitGetHandleByIndex]='passthrough'
@@ -59,7 +61,6 @@ declare -A known_funcs=(
     [nvmlUnitGetTemperature]='passthrough'
     [nvmlUnitGetFanSpeedInfo]='passthrough'
     [nvmlUnitGetDevices]='passthrough'
-    [nvmlSystemGetHicVersion]='passthrough'
     # Device Queries
     [nvmlDeviceGetCount_v2]='passthrough'
     [nvmlDeviceGetAttributes_v2]='NVML_ERROR_NOT_SUPPORTED' # Linux only
@@ -72,6 +73,7 @@ declare -A known_funcs=(
     [nvmlDeviceGetIndex]='passthrough'
     [nvmlDeviceGetSerial]='passthrough'
     [nvmlDeviceGetModuleId]='passthrough'
+    [nvmlDeviceGetC2cModeInfoV]='passthrough'
     # CPU and Memory Affinity
     [nvmlDeviceGetMemoryAffinity]='NVML_ERROR_NOT_SUPPORTED' # Linux only
     [nvmlDeviceGetCpuAffinityWithinScope]='NVML_ERROR_NOT_SUPPORTED' # Linux only
@@ -81,17 +83,16 @@ declare -A known_funcs=(
 
     [nvmlDeviceGetTopologyCommonAncestor]='NVML_ERROR_NOT_SUPPORTED' # Linux only
     [nvmlDeviceGetTopologyNearestGpus]='NVML_ERROR_NOT_SUPPORTED' # Linux only
-    [nvmlSystemGetTopologyGpuSet]='NVML_ERROR_NOT_SUPPORTED' # Linux only
 
     [nvmlDeviceGetP2PStatus]='passthrough'
     [nvmlDeviceGetUUID]='passthrough'
-    [nvmlVgpuInstanceGetMdevUUID]='passthrough'
     [nvmlDeviceGetMinorNumber]='NVML_ERROR_NOT_SUPPORTED' # Linux only
     [nvmlDeviceGetBoardPartNumber]='passthrough'
     [nvmlDeviceGetInforomVersion]='passthrough'
     [nvmlDeviceGetInforomImageVersion]='passthrough'
     [nvmlDeviceGetInforomConfigurationChecksum]='passthrough'
     [nvmlDeviceValidateInforom]='passthrough'
+    [nvmlDeviceGetLastBBXFlushTime]='passthrough'
     [nvmlDeviceGetDisplayMode]='passthrough'
     [nvmlDeviceGetDisplayActive]='passthrough'
     [nvmlDeviceGetPersistenceMode]='NVML_ERROR_NOT_SUPPORTED' # Linux only
@@ -108,25 +109,19 @@ declare -A known_funcs=(
     [nvmlDeviceGetGpcClkVfOffset]='passthrough'
     [nvmlDeviceGetApplicationsClock]='passthrough'
     [nvmlDeviceGetDefaultApplicationsClock]='passthrough'
-    [nvmlDeviceResetApplicationsClocks]='passthrough'
     [nvmlDeviceGetClock]='passthrough'
     [nvmlDeviceGetMaxCustomerBoostClock]='passthrough'
     [nvmlDeviceGetSupportedMemoryClocks]='passthrough'
     [nvmlDeviceGetSupportedGraphicsClocks]='passthrough'
     [nvmlDeviceGetAutoBoostedClocksEnabled]='passthrough'
-    [nvmlDeviceSetAutoBoostedClocksEnabled]='passthrough'
-    [nvmlDeviceSetDefaultAutoBoostedClocksEnabled]='NVML_ERROR_NO_PERMISSION' # requires root
     [nvmlDeviceGetFanSpeed]='passthrough'
     [nvmlDeviceGetFanSpeed_v2]='passthrough'
     [nvmlDeviceGetTargetFanSpeed]='passthrough'
-    [nvmlDeviceSetDefaultFanSpeed_v2]='passthrough'
     [nvmlDeviceGetMinMaxFanSpeed]='passthrough'
     [nvmlDeviceGetFanControlPolicy_v2]='passthrough'
-    [nvmlDeviceSetFanControlPolicy]='passthrough' # requires privileged user
     [nvmlDeviceGetNumFans]='passthrough'
     [nvmlDeviceGetTemperature]='passthrough'
     [nvmlDeviceGetTemperatureThreshold]='passthrough'
-    [nvmlDeviceSetTemperatureThreshold]='passthrough'
     [nvmlDeviceGetThermalSettings]='passthrough'
     [nvmlDeviceGetPerformanceState]='passthrough'
     [nvmlDeviceGetCurrentClocksEventReasons]='passthrough'
@@ -200,6 +195,8 @@ declare -A known_funcs=(
     [nvmlDeviceGetConfComputeProtectedMemoryUsage]='passthrough' # always behaves like TCC on Windows
     [nvmlDeviceGetConfComputeGpuCertificate]='passthrough' # always behaves like TCC on Windows
     [nvmlDeviceGetConfComputeGpuAttestationReport]='passthrough' # always behaves like TCC on Windows
+    [nvmlDeviceGetGspFirmwareVersion]='passthrough'
+    [nvmlDeviceGetGspFirmwareMode]='passthrough'
     [nvmlDeviceGetAccountingMode]='passthrough'
     [nvmlDeviceGetAccountingStats]='passthrough'
     [nvmlDeviceGetAccountingPids]='passthrough' # exposes Linux pids
@@ -210,6 +207,8 @@ declare -A known_funcs=(
     [nvmlDeviceGetRemappedRows]='passthrough'
     [nvmlDeviceGetRowRemapperHistogram]='passthrough'
     [nvmlDeviceGetArchitecture]='passthrough'
+    [nvmlDeviceGetClkMonStatus]='NVML_ERROR_NO_PERMISSION' # requires root
+    [nvmlDeviceGetProcessUtilization]='passthrough' # exposes Linux pids
     # Unit Commands
     # each requires root
     [nvmlUnitSetLedState]='NVML_ERROR_NO_PERMISSION'
@@ -219,13 +218,18 @@ declare -A known_funcs=(
     [nvmlDeviceSetComputeMode]='NVML_ERROR_NO_PERMISSION'
     [nvmlDeviceSetEccMode]='NVML_ERROR_NO_PERMISSION'
     [nvmlDeviceClearEccErrorCounts]='NVML_ERROR_NO_PERMISSION'
-    [nvmlDeviceSetDriverModel]='NVML_ERROR_NO_PERMISSION' # Linux only
+    [nvmlDeviceSetDriverModel]='NVML_ERROR_NO_PERMISSION' # Windows only
     [nvmlDeviceSetGpuLockedClocks]='NVML_ERROR_NO_PERMISSION'
     [nvmlDeviceResetGpuLockedClocks]='NVML_ERROR_NO_PERMISSION'
     [nvmlDeviceSetMemoryLockedClocks]='NVML_ERROR_NO_PERMISSION'
     [nvmlDeviceResetMemoryLockedClocks]='NVML_ERROR_NO_PERMISSION'
     [nvmlDeviceSetApplicationsClocks]='NVML_ERROR_NO_PERMISSION'
-    [nvmlDeviceGetClkMonStatus]='NVML_ERROR_NO_PERMISSION'
+    [nvmlDeviceResetApplicationsClocks]='passthrough'
+    [nvmlDeviceSetAutoBoostedClocksEnabled]='passthrough'
+    [nvmlDeviceSetDefaultAutoBoostedClocksEnabled]='NVML_ERROR_NO_PERMISSION'
+    [nvmlDeviceSetDefaultFanSpeed_v2]='passthrough'
+    [nvmlDeviceSetFanControlPolicy]='passthrough' # requires privileged user
+    [nvmlDeviceSetTemperatureThreshold]='passthrough'
     [nvmlDeviceSetPowerManagementLimit]='NVML_ERROR_NO_PERMISSION'
     [nvmlDeviceSetGpuOperationMode]='NVML_ERROR_NO_PERMISSION'
     [nvmlDeviceSetAPIRestriction]='NVML_ERROR_NO_PERMISSION'
@@ -271,10 +275,6 @@ declare -A known_funcs=(
     [nvmlDeviceSetVirtualizationMode]='passthrough'
     [nvmlDeviceGetGridLicensableFeatures_v4]='passthrough'
 
-    [nvmlDeviceGetProcessUtilization]='passthrough' # exposes Linux pids
-
-    [nvmlDeviceGetGspFirmwareVersion]='passthrough'
-    [nvmlDeviceGetGspFirmwareMode]='passthrough'
     # vGPU Management
     [nvmlGetVgpuDriverCapabilities]='passthrough'
     [nvmlDeviceGetVgpuCapabilities]='passthrough'
@@ -309,6 +309,7 @@ declare -A known_funcs=(
     [nvmlVgpuInstanceGetGpuInstanceId]='passthrough'
     [nvmlVgpuInstanceGetGpuPciId]='passthrough'
     [nvmlVgpuTypeGetCapabilities]='passthrough'
+    [nvmlVgpuInstanceGetMdevUUID]='passthrough'
     # vGPU Migration
     [nvmlVgpuInstanceGetMetadata]='passthrough'
     [nvmlDeviceGetVgpuMetadata]='passthrough'
@@ -909,10 +910,16 @@ static NTSTATUS wine_%s(void *args)
             ;;
         esac
         echo 1>&2 "${func}"
+        unset "known_funcs[${func}]"
     else
         echo 1>&2 "-${func} (function not recognized)"
     fi
 done < "nvml_${version}.i.h"
+
+for func in "${!known_funcs[@]}"
+do
+    echo 1>&2 "?${func} (function not found)"
+done
 
 {
     printf '
