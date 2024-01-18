@@ -6,7 +6,7 @@
 
 ## Building
 
-`wine-nvml` can be built with the Meson build system. You'll need reasonably recent versions of MinGW, GCC, Meson, Ninja and Wine (more specifically: `winebuild`, `winegcc` and `wrc` programs available in your `$PATH`) to do so.
+`wine-nvml` can be built with the Meson build system. You'll need reasonably recent versions of MinGW, GCC, Meson, Ninja and Wine ≥ 9.0 (more specifically: `winebuild`, `winegcc` and `wrc` programs available in your `$PATH`) to do so.
 
 1. Navigate to `src` subdirectory and execute `./make_nvml` to acquire `nvml.h` from `nvidia-settings` repo on GitHub and generate code to compile.
 2. Run `meson setup` to generate build trees. Use `cross-{mingw,wine}64.txt` cross files to setup builds for both PE and Unixlib components using 64–bit variant.
@@ -19,9 +19,9 @@ Please refer to `build.sh` helper script for automated (but simplified and not v
 
 In order for Wine to find and make use of `wine-nvml`, built wrapper libraries must either be placed alongside other Wine PEs and Unixlibs or have their location exported in `WINEDLLPATH` environment variable.
 
-**Wine / Proton versions older than 7.0 are not supported.**
+**Wine / Proton versions older than 8.0 are not supported.**
 
-### Wine ≥ 7.0
+### Wine ≥ 8.0
 
 Find Wine's library dirs for each given arch and copy built `nvml.{dll,so}` into appropriate subdirs. For example, on Arch Linux using the default `wine` package it would be:
 
@@ -39,7 +39,7 @@ build-mingw32/src/nvml.dll → /usr/lib32/wine/i386-windows/nvml.dll
 
 If you had any Wine prefixes created before you installed `wine-nvml`, each one would need to be updated with `wineboot -u` for NVML to become available in that prefix.
 
-### Proton ≥ 7.0
+### Proton ≥ 8.0
 
 Assuming that files of your Proton installation live in `${HOME}/.local/share/Steam/steamapps/common/Proton - Experimental/files` (henceforth referred to as `${files}`), copy resulting build artifacts like so:
 
