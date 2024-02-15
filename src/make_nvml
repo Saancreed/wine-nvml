@@ -941,16 +941,24 @@ cat >> nvml.c << 'EOF'
 
 BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 {
+    NTSTATUS status;
+
     TRACE("(%p, %lu, %p)\n", instance, (unsigned long)reason, reserved);
 
     switch (reason)
     {
         case DLL_PROCESS_ATTACH:
             DisableThreadLibraryCalls(instance);
-            if (__wine_init_unix_call())
+            if ((status = __wine_init_unix_call()))
+            {
+                ERR("__wine_init_unix_call failed, status %lx\n", (unsigned long)status);
                 return FALSE;
-            if (NVML_CALL(attach, NULL))
+            }
+            if ((status = NVML_CALL(attach, NULL)))
+            {
+                ERR("WINE_UNIX_CALL(attach) failed, status %lx\n", (unsigned long)status);
                 return FALSE;
+            }
             break;
         case DLL_PROCESS_DETACH:
             if (reserved)
