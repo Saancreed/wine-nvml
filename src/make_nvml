@@ -22,7 +22,7 @@
 set -euo pipefail
 shopt -s extglob
 
-version="${1:-545.23.06}"
+version="${1:-550.40.07}"
 
 header_url="https://raw.githubusercontent.com/NVIDIA/nvidia-settings/${version}/src/nvml.h"
 
@@ -32,7 +32,7 @@ then
 fi
 
 cpp -DNVML_NO_UNVERSIONED_FUNC_DEFS -P "nvml_${version}.h" \
-    | awk '/nvmlReturn_t nvml.+,$/ { do { l = $0; getline; gsub(" +", " "); printf "%s", l } while (/,$/)} 1' \
+    | awk '/nvmlReturn_t nvml.+[\(,]$/ { do { l = $0; getline; gsub(" +", " "); printf "%s", l } while (!/;/)} 1' \
     > "nvml_${version}.i.h"
 
 ln -f "nvml_${version}.h" nvml.h
@@ -80,6 +80,7 @@ declare -A known_funcs=(
     [nvmlDeviceGetCpuAffinity]='NVML_ERROR_NOT_SUPPORTED' # Linux only
     [nvmlDeviceSetCpuAffinity]='NVML_ERROR_NOT_SUPPORTED' # Linux only
     [nvmlDeviceClearCpuAffinity]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceGetNumaNodeId]='passthrough'
 
     [nvmlDeviceGetTopologyCommonAncestor]='NVML_ERROR_NOT_SUPPORTED' # Linux only
     [nvmlDeviceGetTopologyNearestGpus]='NVML_ERROR_NOT_SUPPORTED' # Linux only
@@ -96,6 +97,7 @@ declare -A known_funcs=(
     [nvmlDeviceGetDisplayMode]='passthrough'
     [nvmlDeviceGetDisplayActive]='passthrough'
     [nvmlDeviceGetPersistenceMode]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceGetPciInfoExt]='passthrough'
     [nvmlDeviceGetPciInfo_v3]='passthrough'
     [nvmlDeviceGetMaxPcieLinkGeneration]='passthrough'
     [nvmlDeviceGetGpuMaxPcieLinkGeneration]='passthrough'
@@ -188,6 +190,7 @@ declare -A known_funcs=(
     [nvmlDeviceGetAdaptiveClockInfoStatus]='passthrough'
     [nvmlDeviceGetBusType]='passthrough'
     [nvmlDeviceGetGpuFabricInfo]='passthrough'
+    [nvmlDeviceGetGpuFabricInfoV]='passthrough'
     [nvmlSystemGetConfComputeCapabilities]='passthrough' # always behaves like TCC on Windows
     [nvmlSystemGetConfComputeState]='passthrough' # always behaves like TCC on Windows
     [nvmlDeviceGetConfComputeMemSizeInfo]='passthrough' # always behaves like TCC on Windows
@@ -195,6 +198,7 @@ declare -A known_funcs=(
     [nvmlDeviceGetConfComputeProtectedMemoryUsage]='passthrough' # always behaves like TCC on Windows
     [nvmlDeviceGetConfComputeGpuCertificate]='passthrough' # always behaves like TCC on Windows
     [nvmlDeviceGetConfComputeGpuAttestationReport]='passthrough' # always behaves like TCC on Windows
+    [nvmlSystemGetConfComputeKeyRotationThresholdInfo]='passthrough' # always behaves like TCC on Windows
     [nvmlDeviceGetGspFirmwareVersion]='passthrough'
     [nvmlDeviceGetGspFirmwareMode]='passthrough'
     [nvmlDeviceGetAccountingMode]='passthrough'
@@ -209,6 +213,7 @@ declare -A known_funcs=(
     [nvmlDeviceGetArchitecture]='passthrough'
     [nvmlDeviceGetClkMonStatus]='NVML_ERROR_NO_PERMISSION' # requires root
     [nvmlDeviceGetProcessUtilization]='passthrough' # exposes Linux pids
+    [nvmlDeviceGetProcessesUtilizationInfo]='passthrough' # exposes Linux pids
     # Unit Commands
     # each requires root
     [nvmlUnitSetLedState]='NVML_ERROR_NO_PERMISSION'
@@ -239,6 +244,7 @@ declare -A known_funcs=(
     [nvmlDeviceSetMemClkVfOffset]='passthrough' # requires elevated privileges
     [nvmlDeviceSetConfComputeUnprotectedMemSize]='passthrough' # always behaves like TCC on Windows
     [nvmlSystemSetConfComputeGpusReadyState]='passthrough' # always behaves like TCC on Windows
+    [nvmlSystemSetConfComputeKeyRotationThresholdInfo]='passthrough' # always behaves like TCC on Windows
     # Accounting Stats
     [nvmlDeviceSetAccountingMode]='NVML_ERROR_NO_PERMISSION'
     [nvmlDeviceClearAccountingPids]='NVML_ERROR_NO_PERMISSION'
@@ -273,6 +279,14 @@ declare -A known_funcs=(
     [nvmlDeviceGetVirtualizationMode]='passthrough'
     [nvmlDeviceGetHostVgpuMode]='passthrough'
     [nvmlDeviceSetVirtualizationMode]='passthrough'
+    [nvmlDeviceGetVgpuHeterogeneousMode]='passthrough'
+    [nvmlDeviceSetVgpuHeterogeneousMode]='passthrough'
+    [nvmlVgpuInstanceGetPlacementId]='passthrough'
+    [nvmlDeviceGetVgpuTypeSupportedPlacements]='passthrough'
+    [nvmlDeviceGetVgpuTypeCreatablePlacements]='passthrough'
+    [nvmlVgpuTypeGetGspHeapSize]='passthrough'
+    [nvmlVgpuTypeGetFbReservation]='passthrough'
+    [nvmlDeviceSetVgpuCapabilities]='passthrough'
     [nvmlDeviceGetGridLicensableFeatures_v4]='passthrough'
 
     # vGPU Management
@@ -323,7 +337,9 @@ declare -A known_funcs=(
     [nvmlSetVgpuVersion]='passthrough'
     # vGPU Utilization and Accounting
     [nvmlDeviceGetVgpuUtilization]='passthrough'
+    [nvmlDeviceGetVgpuInstancesUtilizationInfo]='passthrough'
     [nvmlDeviceGetVgpuProcessUtilization]='passthrough'
+    [nvmlDeviceGetVgpuProcessesUtilizationInfo]='passthrough'
     [nvmlVgpuInstanceGetAccountingMode]='passthrough'
     [nvmlVgpuInstanceGetAccountingPids]='passthrough' # exposes Linux pids
     [nvmlVgpuInstanceGetAccountingStats]='passthrough'
@@ -378,6 +394,7 @@ declare -A known_funcs=(
     [nvmlSystemGetNvlinkBwMode]='passthrough'
 
     [nvmlDeviceSetPowerManagementLimit_v2]='passthrough' # requires root/admin permissions
+    [nvmlDeviceGetSramEccErrorStatus]='passthrough' # requires root/admin permissions
     # API versioning support
     [nvmlInit]='passthrough'
     [nvmlDeviceGetCount]='passthrough'
