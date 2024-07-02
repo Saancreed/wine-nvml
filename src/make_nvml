@@ -22,7 +22,7 @@
 set -euo pipefail
 shopt -s extglob
 
-version="${1:-550.40.07}"
+version="${1:-555.58}"
 
 header_url="https://raw.githubusercontent.com/NVIDIA/nvidia-settings/${version}/src/nvml.h"
 
@@ -137,6 +137,8 @@ declare -A known_funcs=(
     [nvmlDeviceGetSupportedPerformanceStates]='passthrough'
     [nvmlDeviceGetGpcClkMinMaxVfOffset]='passthrough'
     [nvmlDeviceGetMemClkMinMaxVfOffset]='passthrough'
+    [nvmlDeviceGetClockOffsets]='passthrough'
+    [nvmlDeviceSetClockOffsets]='passthrough' # requires privileged user
     [nvmlDeviceGetPowerManagementMode]='passthrough'
     [nvmlDeviceGetPowerManagementLimit]='passthrough'
     [nvmlDeviceGetPowerManagementLimitConstraints]='passthrough'
@@ -169,7 +171,7 @@ declare -A known_funcs=(
     [nvmlDeviceGetOfaUtilization]='passthrough'
     [nvmlDeviceGetFBCStats]='passthrough'
     [nvmlDeviceGetFBCSessions]='passthrough' # exposes Linux pids
-    [nvmlDeviceGetDriverModel]='custom' # Windows only
+    [nvmlDeviceGetDriverModel_v2]='custom' # Windows only
     [nvmlDeviceGetVbiosVersion]='passthrough'
     [nvmlDeviceGetBridgeChipInfo]='passthrough'
     [nvmlDeviceGetComputeRunningProcesses_v3]='passthrough' # exposes Linux pids
@@ -199,6 +201,10 @@ declare -A known_funcs=(
     [nvmlDeviceGetConfComputeGpuCertificate]='passthrough' # always behaves like TCC on Windows
     [nvmlDeviceGetConfComputeGpuAttestationReport]='passthrough' # always behaves like TCC on Windows
     [nvmlSystemGetConfComputeKeyRotationThresholdInfo]='passthrough' # always behaves like TCC on Windows
+    [nvmlDeviceSetConfComputeUnprotectedMemSize]='passthrough' # always behaves like TCC on Windows
+    [nvmlSystemSetConfComputeGpusReadyState]='passthrough' # always behaves like TCC on Windows
+    [nvmlSystemSetConfComputeKeyRotationThresholdInfo]='passthrough' # always behaves like TCC on Windows
+    [nvmlSystemGetConfComputeSettings]='passthrough' # always behaves like TCC on Windows
     [nvmlDeviceGetGspFirmwareVersion]='passthrough'
     [nvmlDeviceGetGspFirmwareMode]='passthrough'
     [nvmlDeviceGetAccountingMode]='passthrough'
@@ -242,9 +248,6 @@ declare -A known_funcs=(
     [nvmlDeviceSetFanSpeed_v2]='passthrough'
     [nvmlDeviceSetGpcClkVfOffset]='passthrough'
     [nvmlDeviceSetMemClkVfOffset]='passthrough' # requires elevated privileges
-    [nvmlDeviceSetConfComputeUnprotectedMemSize]='passthrough' # always behaves like TCC on Windows
-    [nvmlSystemSetConfComputeGpusReadyState]='passthrough' # always behaves like TCC on Windows
-    [nvmlSystemSetConfComputeKeyRotationThresholdInfo]='passthrough' # always behaves like TCC on Windows
     # Accounting Stats
     [nvmlDeviceSetAccountingMode]='NVML_ERROR_NO_PERMISSION'
     [nvmlDeviceClearAccountingPids]='NVML_ERROR_NO_PERMISSION'
@@ -395,6 +398,7 @@ declare -A known_funcs=(
 
     [nvmlDeviceSetPowerManagementLimit_v2]='passthrough' # requires root/admin permissions
     [nvmlDeviceGetSramEccErrorStatus]='passthrough' # requires root/admin permissions
+    [nvmlDeviceGetCapabilities]='passthrough'
     # API versioning support
     [nvmlInit]='passthrough'
     [nvmlDeviceGetCount]='passthrough'
@@ -417,6 +421,7 @@ declare -A known_funcs=(
     [nvmlDeviceGetMPSComputeRunningProcesses]='passthrough' # exposes Linux pids
     [nvmlDeviceGetMPSComputeRunningProcesses_v2]='passthrough' # exposes Linux pids
     [nvmlDeviceGetGpuInstancePossiblePlacements]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
+    [nvmlDeviceGetDriverModel]='custom' # Windows only
     [nvmlVgpuInstanceGetLicenseInfo]='passthrough'
 )
 
@@ -688,6 +693,35 @@ function generate_nvmlDeviceGetDriverModel()
     cat >> nvml.c << 'EOF'
 
 nvmlReturn_t nvmlDeviceGetDriverModel(nvmlDevice_t device, nvmlDriverModel_t *current, nvmlDriverModel_t *pending)
+{
+    nvmlReturn_t result;
+    unsigned int index;
+
+    TRACE("(%p, %p, %p)\n", device, current, pending);
+
+    NVML_RETURN_IF_NOT_ALLOWED;
+
+    if (!current && !pending) return NVML_ERROR_INVALID_ARGUMENT;
+
+    /* validate device */
+    result = nvmlDeviceGetIndex(device, &index);
+
+    if (result == NVML_SUCCESS)
+    {
+        if (current) *current = NVML_DRIVER_WDDM;
+        if (pending) *pending = NVML_DRIVER_WDDM;
+    }
+
+    return result;
+}
+EOF
+}
+
+function generate_nvmlDeviceGetDriverModel_v2()
+{
+    cat >> nvml.c << 'EOF'
+
+nvmlReturn_t nvmlDeviceGetDriverModel_v2(nvmlDevice_t device, nvmlDriverModel_t *current, nvmlDriverModel_t *pending)
 {
     nvmlReturn_t result;
     unsigned int index;
