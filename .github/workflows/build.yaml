@@ -16,7 +16,7 @@ jobs:
     container: archlinux:base-devel
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install dependencies
         run: |
           echo -e '\n\n[multilib]\nInclude = /etc/pacman.d/mirrorlist\n' >> /etc/pacman.conf
@@ -27,7 +27,7 @@ jobs:
           export DESTDIR="${PWD}"
           ./build.sh --install
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: wine-nvml-arch
           path: usr/**
@@ -37,7 +37,7 @@ jobs:
     container: ubuntu:jammy
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install dependencies
         run: |
           export DEBIAN_FRONTEND=noninteractive
@@ -53,7 +53,7 @@ jobs:
           export DESTDIR="${PWD}"
           ./build.sh --install
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: wine-nvml-ubuntu-jammy
           path: usr/**
