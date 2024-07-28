@@ -13,13 +13,12 @@ jobs:
   build-arch:
     name: Build on Arch
     runs-on: ubuntu-latest
-    container: archlinux:base-devel
+    container: archlinux:multilib-devel
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install dependencies
         run: |
-          echo -e '\n\n[multilib]\nInclude = /etc/pacman.d/mirrorlist\n' >> /etc/pacman.conf
           pacman-key --init
           pacman -Syu --needed --noconfirm mingw-w64-gcc meson ninja wine
       - name: Build
