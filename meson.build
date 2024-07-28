@@ -7,22 +7,6 @@ install_dir     = get_option('libdir') / 'wine' / arch_dir_prefix + '-' + os_dir
 
 cc = meson.get_compiler('c')
 
-has_reasonable_format_warnings = cc.get_supported_arguments('-Wformat', '-Werror').length() < 2 or cc.compiles(
-    '''
-    #include <stdio.h>
-
-    int main()
-    {
-        printf("%lli\n", (long long)0);
-    }
-    ''',
-    args: ['-Wformat', '-Werror'],
-    name: 'reasonable format warnings')
-
-if not has_reasonable_format_warnings
-    add_project_arguments(cc.get_supported_arguments('-Wno-format'), language: ['c'])
-endif
-
 if not is_windows
     lib_dl = cc.find_library('dl')
 endif
