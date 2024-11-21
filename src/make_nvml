@@ -22,7 +22,7 @@
 set -euo pipefail
 shopt -s extglob
 
-version="${1:-555.58}"
+version="${1:-565.57.01}"
 
 header_url="https://raw.githubusercontent.com/NVIDIA/nvidia-settings/${version}/src/nvml.h"
 
@@ -52,6 +52,7 @@ declare -A known_funcs=(
     [nvmlSystemGetProcessName]='passthrough' # handles Linux pids instead of Windows pids
     [nvmlSystemGetHicVersion]='passthrough'
     [nvmlSystemGetTopologyGpuSet]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlSystemGetDriverBranch]='passthrough'
     # Unit Queries
     [nvmlUnitGetCount]='passthrough'
     [nvmlUnitGetHandleByIndex]='passthrough'
@@ -118,11 +119,14 @@ declare -A known_funcs=(
     [nvmlDeviceGetAutoBoostedClocksEnabled]='passthrough'
     [nvmlDeviceGetFanSpeed]='passthrough'
     [nvmlDeviceGetFanSpeed_v2]='passthrough'
+    [nvmlDeviceGetFanSpeedRPM]='passthrough'
     [nvmlDeviceGetTargetFanSpeed]='passthrough'
     [nvmlDeviceGetMinMaxFanSpeed]='passthrough'
     [nvmlDeviceGetFanControlPolicy_v2]='passthrough'
     [nvmlDeviceGetNumFans]='passthrough'
     [nvmlDeviceGetTemperature]='passthrough'
+    [nvmlDeviceGetCoolerInfo]='passthrough'
+    [nvmlDeviceGetTemperatureV]='passthrough'
     [nvmlDeviceGetTemperatureThreshold]='passthrough'
     [nvmlDeviceGetThermalSettings]='passthrough'
     [nvmlDeviceGetPerformanceState]='passthrough'
@@ -139,6 +143,8 @@ declare -A known_funcs=(
     [nvmlDeviceGetMemClkMinMaxVfOffset]='passthrough'
     [nvmlDeviceGetClockOffsets]='passthrough'
     [nvmlDeviceSetClockOffsets]='passthrough' # requires privileged user
+    [nvmlDeviceGetPerformanceModes]='passthrough'
+    [nvmlDeviceGetCurrentClockFreqs]='passthrough'
     [nvmlDeviceGetPowerManagementMode]='passthrough'
     [nvmlDeviceGetPowerManagementLimit]='passthrough'
     [nvmlDeviceGetPowerManagementLimitConstraints]='passthrough'
@@ -220,6 +226,7 @@ declare -A known_funcs=(
     [nvmlDeviceGetClkMonStatus]='NVML_ERROR_NO_PERMISSION' # requires root
     [nvmlDeviceGetProcessUtilization]='passthrough' # exposes Linux pids
     [nvmlDeviceGetProcessesUtilizationInfo]='passthrough' # exposes Linux pids
+    [nvmlDeviceGetPlatformInfo]='passthrough'
     # Unit Commands
     # each requires root
     [nvmlUnitSetLedState]='NVML_ERROR_NO_PERMISSION'
@@ -289,6 +296,7 @@ declare -A known_funcs=(
     [nvmlDeviceGetVgpuTypeCreatablePlacements]='passthrough'
     [nvmlVgpuTypeGetGspHeapSize]='passthrough'
     [nvmlVgpuTypeGetFbReservation]='passthrough'
+    [nvmlVgpuInstanceGetRuntimeStateSize]='passthrough'
     [nvmlDeviceSetVgpuCapabilities]='passthrough'
     [nvmlDeviceGetGridLicensableFeatures_v4]='passthrough'
 
@@ -308,6 +316,7 @@ declare -A known_funcs=(
     [nvmlVgpuTypeGetFrameRateLimit]='passthrough'
     [nvmlVgpuTypeGetMaxInstances]='passthrough'
     [nvmlVgpuTypeGetMaxInstancesPerVm]='passthrough'
+    [nvmlVgpuTypeGetBAR1Info]='passthrough'
     [nvmlDeviceGetActiveVgpus]='passthrough'
     [nvmlVgpuInstanceGetVmID]='passthrough'
     [nvmlVgpuInstanceGetUUID]='passthrough'
