@@ -22,7 +22,7 @@
 set -euo pipefail
 shopt -s extglob
 
-version="${1:-565.57.01}"
+version="${1:-570.124.04}"
 
 header_url="https://raw.githubusercontent.com/NVIDIA/nvidia-settings/${version}/src/nvml.h"
 
@@ -128,6 +128,7 @@ declare -A known_funcs=(
     [nvmlDeviceGetCoolerInfo]='passthrough'
     [nvmlDeviceGetTemperatureV]='passthrough'
     [nvmlDeviceGetTemperatureThreshold]='passthrough'
+    [nvmlDeviceGetMarginTemperature]='passthrough'
     [nvmlDeviceGetThermalSettings]='passthrough'
     [nvmlDeviceGetPerformanceState]='passthrough'
     [nvmlDeviceGetCurrentClocksEventReasons]='passthrough'
@@ -160,6 +161,8 @@ declare -A known_funcs=(
     [nvmlDeviceGetMemoryInfo_v2]='passthrough' # always behaves like TCC on Windows
     [nvmlDeviceGetComputeMode]='passthrough'
     [nvmlDeviceGetCudaComputeCapability]='passthrough'
+    [nvmlDeviceGetDramEncryptionMode]='passthrough'
+    [nvmlDeviceSetDramEncryptionMode]='passthrough'
     [nvmlDeviceGetEccMode]='passthrough'
     [nvmlDeviceGetDefaultEccMode]='passthrough'
     [nvmlDeviceGetBoardId]='passthrough'
@@ -404,10 +407,20 @@ declare -A known_funcs=(
     [nvmlDeviceSetNvLinkDeviceLowPowerThreshold]='passthrough'
     [nvmlSystemSetNvlinkBwMode]='passthrough'
     [nvmlSystemGetNvlinkBwMode]='passthrough'
+    [nvmlDeviceGetNvlinkSupportedBwModes]='passthrough'
+    [nvmlDeviceGetNvlinkBwMode]='passthrough'
+    [nvmlDeviceSetNvlinkBwMode]='passthrough'
 
     [nvmlDeviceSetPowerManagementLimit_v2]='passthrough' # requires root/admin permissions
     [nvmlDeviceGetSramEccErrorStatus]='passthrough' # requires root/admin permissions
     [nvmlDeviceGetCapabilities]='passthrough'
+    [nvmlDeviceWorkloadPowerProfileGetProfilesInfo]='passthrough'
+    [nvmlDeviceWorkloadPowerProfileGetCurrentProfiles]='passthrough'
+    [nvmlDeviceWorkloadPowerProfileSetRequestedProfiles]='passthrough'
+    [nvmlDeviceWorkloadPowerProfileClearRequestedProfiles]='passthrough'
+    [nvmlDevicePowerSmoothingActivatePresetProfile]='passthrough'
+    [nvmlDevicePowerSmoothingUpdatePresetProfileParam]='passthrough'
+    [nvmlDevicePowerSmoothingSetState]='passthrough'
     # API versioning support
     [nvmlInit]='passthrough'
     [nvmlDeviceGetCount]='passthrough'
