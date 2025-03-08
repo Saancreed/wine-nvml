@@ -22,12 +22,12 @@
 #include "winver.h"
 
 #define WINE_FILENAME_STR "nvml.dll"
-#define WINE_FILEDESCRIPTION_STR "NVIDIA Management Library 556.12"
+#define WINE_FILEDESCRIPTION_STR "NVIDIA Management Library 572.16"
 
-#define WINE_FILEVERSION      8,17,15,5612
-#define WINE_FILEVERSION_STR "8.17.15.5612"
+#define WINE_FILEVERSION      8,17,15,7216
+#define WINE_FILEVERSION_STR "8.17.15.7216"
 
-#define WINE_PRODUCTVERSION      8,17,15,5612
-#define WINE_PRODUCTVERSION_STR "8.17.15.5612"
+#define WINE_PRODUCTVERSION      8,17,15,7216
+#define WINE_PRODUCTVERSION_STR "8.17.15.7216"
 
 #include "wine/wine_common_ver.rc"
