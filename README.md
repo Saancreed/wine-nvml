@@ -18,9 +18,9 @@ Please refer to `build.sh` helper script for automated (but simplified and not v
 
 In order for Wine to find and make use of `wine-nvml`, built wrapper libraries must either be placed alongside other Wine PEs and Unixlibs or have their location exported in `WINEDLLPATH` environment variable.
 
-**Wine / Proton versions older than 8.0 are not supported.**
+**Wine / Proton versions older than 9.0 are not supported.**
 
-### Wine ≥ 8.0
+### Wine
 
 Find Wine's library dirs for each given arch and copy built `nvml.{dll,so}` into appropriate subdirs. For example, on Arch Linux using the default `wine` package it would be:
 
@@ -31,7 +31,7 @@ build-mingw64/src/nvml.dll → /usr/lib/wine/x86_64-windows/nvml.dll
 
 If you had any Wine prefixes created before you installed `wine-nvml`, each one would need to be updated with `wineboot -u` for NVML to become available in that prefix.
 
-### Proton ≥ 8.0
+### Proton
 
 Assuming that files of your Proton installation live in `${HOME}/.local/share/Steam/steamapps/common/Proton - Experimental/files` (henceforth referred to as `${files}`), copy resulting build artifacts like so:
 
