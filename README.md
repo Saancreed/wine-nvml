@@ -16,7 +16,7 @@ Please refer to `build.sh` helper script for automated (but simplified and not v
 
 ## Installing
 
-In order for Wine to find and make use of `wine-nvml`, built wrapper libraries must either be placed alongside other Wine PEs and Unixlibs or have their location exported in `WINEDLLPATH` environment variable.
+In order for Wine to find and make use of `wine-nvml`, built wrapper libraries must either be placed alongside other Wine PEs and Unixlibs (in the same directories where `ntdll.dll` and `ntdll.so` are) or have their location exported in `WINEDLLPATH` environment variable.
 
 **Wine / Proton versions older than 9.0 are not supported.**
 
@@ -25,8 +25,8 @@ In order for Wine to find and make use of `wine-nvml`, built wrapper libraries m
 Find Wine's library dirs for each given arch and copy built `nvml.{dll,so}` into appropriate subdirs. For example, on Arch Linux using the default `wine` package it would be:
 
 ```sh
-build-wine64/src/nvml.so   → /usr/lib/wine/x86_64-unix/nvml.so
 build-mingw64/src/nvml.dll → /usr/lib/wine/x86_64-windows/nvml.dll
+build-wine64/src/nvml.so   → /usr/lib/wine/x86_64-unix/nvml.so
 ```
 
 If you had any Wine prefixes created before you installed `wine-nvml`, each one would need to be updated with `wineboot -u` for NVML to become available in that prefix.
@@ -35,9 +35,18 @@ If you had any Wine prefixes created before you installed `wine-nvml`, each one 
 
 Assuming that files of your Proton installation live in `${HOME}/.local/share/Steam/steamapps/common/Proton - Experimental/files` (henceforth referred to as `${files}`), copy resulting build artifacts like so:
 
+#### Proton ≥ 10.0
+
 ```sh
-build-wine64/src/nvml.so   → ${files}/lib64/wine/x86_64-unix/nvml.so
+build-mingw64/src/nvml.dll → ${files}/lib/wine/x86_64-windows/nvml.dll
+build-wine64/src/nvml.so   → ${files}/lib/wine/x86_64-unix/nvml.so
+```
+
+#### Proton 9.0
+
+```sh
 build-mingw64/src/nvml.dll → ${files}/lib64/wine/x86_64-windows/nvml.dll
+build-wine64/src/nvml.so   → ${files}/lib64/wine/x86_64-unix/nvml.so
 ```
 
 It is possible that Proton won't copy/link `nvml.dll` into game's prefixes on its own even on prefix updates. In that case, you should copy/link it manually. Assuming that your compatdata lives in `${HOME}/.local/share/Steam/steamapps/compatdata/${appid}` where `${appid}` is your game's Steam AppId (henceforth referred to as `${compatdata}`):
@@ -51,8 +60,8 @@ build-mingw64/src/nvml.dll → ${compatdata}/pfx/drive_c/windows/system32/nvml.d
 Alternatively, it is possible to avoid copying/linking `wine-nvml` libraries into Wine installation directory by exporting `WINEDLLPATH` environment variable with a list of `:`–separated paths to `wine` directories containing `x86_64-{unix,windows}`, as produced by `ninja install` after the build. For example, assuming that `wine-nvml` files exist in the filesystem like so:
 
 ```sh
-/path/to/wine-nvml/lib64/wine/x86_64-unix/nvml.so
 /path/to/wine-nvml/lib64/wine/x86_64-windows/nvml.dll
+/path/to/wine-nvml/lib64/wine/x86_64-unix/nvml.so
 ```
 
 Then exporting `WINEDLLPATH=/path/to/wine-nvml/lib64/wine` will allow Wine to find `wine-nvml` in that location.
