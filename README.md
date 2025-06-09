@@ -10,7 +10,6 @@
 
 1. Navigate to `src` subdirectory and execute `./make_nvml` to acquire `nvml.h` from `nvidia-settings` repo on GitHub and generate code to compile.
 2. Run `meson setup` to generate build trees. Use `cross-{mingw,wine}64.txt` cross files to setup builds for both PE and Unixlib components using 64–bit variant.
-   1. Optionally, repeat this step with `cross-{mingw,wine}32.txt` cross files to build 32-bit variant but see [Note on 32-bit](#note-on-32-bit) below.
 3. Run `ninja` in each component's build directory to build it.
 
 Please refer to `build.sh` helper script for automated (but simplified and not very flexible) building procedure.
@@ -30,13 +29,6 @@ build-wine64/src/nvml.so   → /usr/lib/wine/x86_64-unix/nvml.so
 build-mingw64/src/nvml.dll → /usr/lib/wine/x86_64-windows/nvml.dll
 ```
 
-When using 32-bit `wine-nvml`, also copy it like so (but see [Note on 32-bit](#note-on-32-bit) below):
-
-```sh
-build-wine32/src/nvml.so   → /usr/lib32/wine/i386-unix/nvml.so
-build-mingw32/src/nvml.dll → /usr/lib32/wine/i386-windows/nvml.dll
-```
-
 If you had any Wine prefixes created before you installed `wine-nvml`, each one would need to be updated with `wineboot -u` for NVML to become available in that prefix.
 
 ### Proton ≥ 8.0
@@ -48,37 +40,22 @@ build-wine64/src/nvml.so   → ${files}/lib64/wine/x86_64-unix/nvml.so
 build-mingw64/src/nvml.dll → ${files}/lib64/wine/x86_64-windows/nvml.dll
 ```
 
-And when using 32-bit `wine-nvml`, also copy it like so (but see [Note on 32-bit](#note-on-32-bit) below):
-
-```sh
-build-wine32/src/nvml.so   → ${files}/lib/wine/i386-unix/nvml.so
-build-mingw32/src/nvml.dll → ${files}/lib/wine/i386-windows/nvml.dll
-```
-
 It is possible that Proton won't copy/link `nvml.dll` into game's prefixes on its own even on prefix updates. In that case, you should copy/link it manually. Assuming that your compatdata lives in `${HOME}/.local/share/Steam/steamapps/compatdata/${appid}` where `${appid}` is your game's Steam AppId (henceforth referred to as `${compatdata}`):
 
 ```sh
 build-mingw64/src/nvml.dll → ${compatdata}/pfx/drive_c/windows/system32/nvml.dll
 ```
 
-And when using 32-bit `wine-nvml`:
-
-```sh
-build-mingw32/src/nvml.dll → ${compatdata}/pfx/drive_c/windows/syswow64/nvml.dll
-```
-
 ### Using `WINEDLLPATH`
 
-Alternatively, it is possible to avoid copying/linking `wine-nvml` libraries into Wine installation directory by exporting `WINEDLLPATH` environment variable with a list of `:`–separated paths to `wine` directories containing `{x86_64,i386}-{unix,windows}`, as produced by `ninja install` after the build. For example, assuming that `wine-nvml` files exist in the filesystem like so:
+Alternatively, it is possible to avoid copying/linking `wine-nvml` libraries into Wine installation directory by exporting `WINEDLLPATH` environment variable with a list of `:`–separated paths to `wine` directories containing `x86_64-{unix,windows}`, as produced by `ninja install` after the build. For example, assuming that `wine-nvml` files exist in the filesystem like so:
 
 ```sh
-/path/to/wine-nvml/lib32/wine/i386-unix/nvml.so
-/path/to/wine-nvml/lib32/wine/i386-windows/nvml.dll
 /path/to/wine-nvml/lib64/wine/x86_64-unix/nvml.so
 /path/to/wine-nvml/lib64/wine/x86_64-windows/nvml.dll
 ```
 
-Then exporting `WINEDLLPATH=/path/to/wine-nvml/lib64/wine:/path/to/wine-nvml/lib32/wine` will allow Wine to find `wine-nvml` in that location.
+Then exporting `WINEDLLPATH=/path/to/wine-nvml/lib64/wine` will allow Wine to find `wine-nvml` in that location.
 
 Note that `nvml.dll` should still be copied into each Wine prefix, but with correct `WINEDLLPATH` (and `WINEPREFIX`) exported, executing `wineboot -u` should be enough to do this for you.
 
@@ -90,9 +67,7 @@ An example application by NVIDIA and a `Makefile` to build it for Wine can be fo
 
 ## Note on 32-bit
 
-While NVIDIA does not provide 32-bit `nvml.dll` on Windows, it is possible to compile `wine-nvml` using `i686-w64-mingw32` toolchain. This does _not_ use Wine's Wow64 mode and instead takes advantage of NVIDIA Linux drivers providing 32-bit `libnvidia-ml.so`. However, exposing 32-bit NVML to Windows applications can have unexpected consequences, possibly causing them to enter buggy code paths that wouldn't work even on Windows. For this reason, 32-bit builds of `wine-nvml` by default only allow NVML calls to succeed if the caller is `nvapi.dll` (for DXVK-NVAPI, known to utilize them correctly). You can override this behavior by exporting environment variable `WINE_NVML_ALLOW_32BIT`, for which the value of `0` causes `wine-nvml` to unconditionally reject all incoming calls and value of `1` causes it to accept all incoming calls, regardless of the caller.
-
-Because of no there is no implementation for Wine wow64 mode and some applications explode when they successfuly use 32-bit NVML, 32-bit builds are considered to be unsupported.
+While NVIDIA does not provide 32-bit `nvml.dll` on Windows, it is possible to compile `wine-nvml` using `i686-w64-mingw32` toolchain. This does _not_ use Wine's Wow64 mode and instead takes advantage of NVIDIA Linux drivers providing 32-bit `libnvidia-ml.so`. However, exposing 32-bit NVML to Windows applications can have unexpected consequences, possibly causing them to enter buggy code paths that wouldn't work even on Windows. Because of this, 32-bit builds of `wine-nvml` are considered to be unsupported.
 
 ## Potential issues
 

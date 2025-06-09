@@ -6,7 +6,7 @@ srcdir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
 (cd "${srcdir}/src" && ./make_nvml)
 
-BITS="${BITS:-64}"
+BITS=64
 
 meson setup \
     --cross-file "${srcdir}/cross-mingw${BITS}.txt" \
