@@ -22,7 +22,7 @@
 set -euo pipefail
 shopt -s extglob
 
-version="${1:-575.57.08}"
+version="${1:-590.48.01}"
 
 header_url="https://raw.githubusercontent.com/NVIDIA/nvidia-settings/${version}/src/nvml.h"
 
@@ -83,6 +83,9 @@ declare -A known_funcs=(
     [nvmlDeviceSetCpuAffinity]='NVML_ERROR_NOT_SUPPORTED' # Linux only
     [nvmlDeviceClearCpuAffinity]='NVML_ERROR_NOT_SUPPORTED' # Linux only
     [nvmlDeviceGetNumaNodeId]='passthrough'
+    [nvmlDeviceGetAddressingMode]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceGetRepairStatus]='passthrough'
+    [nvmlDeviceGetUnrepairableMemoryFlag_v1]='passthrough'
 
     [nvmlDeviceGetTopologyCommonAncestor]='NVML_ERROR_NOT_SUPPORTED' # Linux only
     [nvmlDeviceGetTopologyNearestGpus]='NVML_ERROR_NOT_SUPPORTED' # Linux only
@@ -152,6 +155,8 @@ declare -A known_funcs=(
     [nvmlDeviceGetPowerManagementLimitConstraints]='passthrough'
     [nvmlDeviceGetPowerManagementDefaultLimit]='passthrough'
     [nvmlDeviceGetPowerUsage]='passthrough'
+    [nvmlDeviceGetPowerMizerMode_v1]='passthrough'
+    [nvmlDeviceSetPowerMizerMode_v1]='passthrough'
     [nvmlDeviceGetTotalEnergyConsumption]='passthrough'
     [nvmlDeviceGetEnforcedPowerLimit]='passthrough'
     [nvmlDeviceGetGpuOperationMode]='passthrough'
@@ -228,6 +233,9 @@ declare -A known_funcs=(
     [nvmlDeviceGetProcessUtilization]='passthrough' # exposes Linux pids
     [nvmlDeviceGetProcessesUtilizationInfo]='passthrough' # exposes Linux pids
     [nvmlDeviceGetPlatformInfo]='passthrough'
+    [nvmlDeviceGetPdi]='passthrough'
+    [nvmlDeviceSetHostname_v1]='NVML_ERROR_NOT_SUPPORTED' # Linux only, requires root/admin permissions
+    [nvmlDeviceGetHostname_v1]='NVML_ERROR_NOT_SUPPORTED' # Linux only
     # Unit Commands
     # each requires root
     [nvmlUnitSetLedState]='NVML_ERROR_NO_PERMISSION'
@@ -374,11 +382,15 @@ declare -A known_funcs=(
     # Excluded GPU Queries
     [nvmlGetExcludedDeviceCount]='passthrough'
     [nvmlGetExcludedDeviceInfoByIndex]='passthrough'
+    # PRM Access
+    [nvmlDeviceReadWritePRM_v1]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceReadPRMCounters_v1]='NVML_ERROR_NOT_SUPPORTED' # Linux only
     # Multi Instance GPU Management
     [nvmlDeviceSetMigMode]='NVML_ERROR_NO_PERMISSION' # requires root, on Windows only disabling MIG mode is supported
     [nvmlDeviceGetMigMode]='passthrough'
     [nvmlDeviceGetGpuInstanceProfileInfo]='NVML_ERROR_NOT_SUPPORTED' # Linux only
     [nvmlDeviceGetGpuInstanceProfileInfoV]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDeviceGetGpuInstanceProfileInfoByIdV]='NVML_ERROR_NOT_SUPPORTED' # Linux only
     [nvmlDeviceGetGpuInstancePossiblePlacements_v2]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
     [nvmlDeviceGetGpuInstanceRemainingCapacity]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
     [nvmlDeviceCreateGpuInstance]='NVML_ERROR_NO_PERMISSION' # Linux only, requires privileged user
@@ -419,17 +431,22 @@ declare -A known_funcs=(
     [nvmlDeviceGetNvlinkSupportedBwModes]='passthrough'
     [nvmlDeviceGetNvlinkBwMode]='passthrough'
     [nvmlDeviceSetNvlinkBwMode]='passthrough'
+    [nvmlDeviceGetNvLinkInfo]='passthrough'
 
     [nvmlDeviceSetPowerManagementLimit_v2]='passthrough' # requires root/admin permissions
     [nvmlDeviceGetSramEccErrorStatus]='passthrough' # requires root/admin permissions
     [nvmlDeviceGetCapabilities]='passthrough'
     [nvmlDeviceWorkloadPowerProfileGetProfilesInfo]='passthrough'
     [nvmlDeviceWorkloadPowerProfileGetCurrentProfiles]='passthrough'
+    [nvmlDeviceWorkloadPowerProfileUpdateProfiles_v1]='passthrough' # requires root/admin permissions
     [nvmlDeviceWorkloadPowerProfileSetRequestedProfiles]='passthrough'
     [nvmlDeviceWorkloadPowerProfileClearRequestedProfiles]='passthrough'
     [nvmlDevicePowerSmoothingActivatePresetProfile]='passthrough'
     [nvmlDevicePowerSmoothingUpdatePresetProfileParam]='passthrough'
     [nvmlDevicePowerSmoothingSetState]='passthrough'
+
+    [nvmlDeviceGetSramUniqueUncorrectedEccErrorCounts]='passthrough'
+    [nvmlDeviceSetRusdSettings_v1]='NVML_ERROR_NO_PERMISSION' # requires root/admin permissions
     # API versioning support
     [nvmlInit]='passthrough'
     [nvmlDeviceGetCount]='passthrough'
@@ -484,13 +501,15 @@ cat > nvml.c << 'EOF'
 #include "wine/unixlib.h"
 #include "wine/debug.h"
 
+#define NVML_LIB_EXPORT
+
 #include "./nvml_private.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(nvml);
 
 #define NVML_CALL(func, params) WINE_UNIX_CALL(unix_ ## func, params)
 
-const char* nvmlErrorString(nvmlReturn_t result)
+const DECLDIR char* nvmlErrorString(nvmlReturn_t result)
 {
     struct nvmlErrorString_params params = { result, NULL };
 
@@ -503,7 +522,7 @@ const char* nvmlErrorString(nvmlReturn_t result)
 
 static const size_t export_table = sizeof(size_t);
 
-nvmlReturn_t nvmlInternalGetExportTable(const size_t **ptr, const GUID *guid)
+nvmlReturn_t DECLDIR nvmlInternalGetExportTable(const size_t **ptr, const GUID *guid)
 {
     FIXME("(%p, %s): stub\n", ptr, debugstr_guid(guid));
 
@@ -527,6 +546,8 @@ cat > nvml_unixlib.c << 'EOF'
 #include "winbase.h"
 #include "ntstatus.h"
 #include "wine/unixlib.h"
+
+#define NVML_STATIC_IMPORT
 
 #include "./nvml_private.h"
 
@@ -652,7 +673,7 @@ function generate_nvmlDeviceGetDriverModel()
 {
     cat >> nvml.c << 'EOF'
 
-nvmlReturn_t nvmlDeviceGetDriverModel(nvmlDevice_t device, nvmlDriverModel_t *current, nvmlDriverModel_t *pending)
+nvmlReturn_t DECLDIR nvmlDeviceGetDriverModel(nvmlDevice_t device, nvmlDriverModel_t *current, nvmlDriverModel_t *pending)
 {
     nvmlReturn_t result;
     unsigned int index;
@@ -679,7 +700,7 @@ function generate_nvmlDeviceGetDriverModel_v2()
 {
     cat >> nvml.c << 'EOF'
 
-nvmlReturn_t nvmlDeviceGetDriverModel_v2(nvmlDevice_t device, nvmlDriverModel_t *current, nvmlDriverModel_t *pending)
+nvmlReturn_t DECLDIR nvmlDeviceGetDriverModel_v2(nvmlDevice_t device, nvmlDriverModel_t *current, nvmlDriverModel_t *pending)
 {
     nvmlReturn_t result;
     unsigned int index;
@@ -706,7 +727,7 @@ function generate_nvmlDeviceGetSupportedEventTypes()
 {
     cat >> nvml.c << 'EOF'
 
-nvmlReturn_t nvmlDeviceGetSupportedEventTypes(nvmlDevice_t device, unsigned long long *eventTypes)
+nvmlReturn_t DECLDIR nvmlDeviceGetSupportedEventTypes(nvmlDevice_t device, unsigned long long *eventTypes)
 {
     nvmlReturn_t result;
     unsigned int index;
@@ -779,7 +800,7 @@ do
                 if [[ "${args[0]}" == void ]]
                 then
                     printf '
-nvmlReturn_t %s(void)
+nvmlReturn_t DECLDIR %s(void)
 {
     TRACE("()\\n");
 
@@ -789,7 +810,7 @@ nvmlReturn_t %s(void)
                 else
                     parse_args "${args[@]}"
                     printf '
-nvmlReturn_t %s(%s)
+nvmlReturn_t DECLDIR %s(%s)
 {
     TRACE("(%s)\\n", %s);
 
@@ -802,7 +823,7 @@ nvmlReturn_t %s(%s)
                 if [[ "${args[0]}" == void ]]
                 then
                     printf '
-nvmlReturn_t %s(void)
+nvmlReturn_t DECLDIR %s(void)
 {
     FIXME("(): stub\\n");
 
@@ -812,7 +833,7 @@ nvmlReturn_t %s(void)
                 else
                     parse_args "${args[@]}"
                     printf '
-nvmlReturn_t %s(%s)
+nvmlReturn_t DECLDIR %s(%s)
 {
     FIXME("(%s): stub\\n", %s);
 
@@ -828,7 +849,7 @@ nvmlReturn_t %s(%s)
                 if [[ "${args[0]}" == void ]]
                 then
                     printf '
-nvmlReturn_t %s(void)
+nvmlReturn_t DECLDIR %s(void)
 {
     nvmlReturn_t result;
 
@@ -867,7 +888,7 @@ static NTSTATUS wine_%s(void *args)
                     } >> nvml_private.h
 
                     printf '
-nvmlReturn_t %s(%s)
+nvmlReturn_t DECLDIR %s(%s)
 {
     struct %s_params params = { %s, 0 };
 
