@@ -32,6 +32,7 @@ then
 fi
 
 cpp -DNVML_NO_UNVERSIONED_FUNC_DEFS -P "nvml_${version}.h" \
+    | awk '{ gsub("__attribute__\\(\\([^()]+(\\([^()]+\\))?\\)\\)[[:space:]]*", ""); print; }' \
     | awk '/nvmlReturn_t nvml.+[\(,]$/ { do { l = $0; getline; gsub(" +", " "); printf "%s", l } while (!/;/)} 1' \
     > "nvml_${version}.i.h"
 
