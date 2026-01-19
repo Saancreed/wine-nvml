@@ -4,9 +4,10 @@ pkgrel=1
 pkgdesc='NVIDIA Management Library wrapper for Wine'
 arch=('x86_64')
 url='https://github.com/Saancreed/wine-nvml'
-license=('LGPL2.1')
-makedepends=('git' 'meson' 'mingw-w64-gcc' 'ninja' 'wine')
-options=('!buildflags' '!strip')
+license=('LGPL-2.1-or-later')
+depends=('glibc' 'wine')
+makedepends=('git' 'meson' 'mingw-w64-gcc' 'ninja')
+options=('pestrip')
 source=("git+https://github.com/Saancreed/wine-nvml.git${_fragment:+#${_fragment}}")
 sha512sums=('SKIP')
 
@@ -24,22 +25,14 @@ build()
 {
     cd "${srcdir}/wine-nvml"
 
-    meson setup \
+    arch-meson \
         --cross-file ./cross-mingw64.txt \
-        --prefix /usr \
-        --libdir lib \
-        --buildtype release \
-        --strip \
         ../build-mingw64 .
 
     ninja -C ../build-mingw64
 
-    meson setup \
+    arch-meson \
         --cross-file ./cross-wine64.txt \
-        --prefix /usr \
-        --libdir lib \
-        --buildtype release \
-        --strip \
         ../build-wine64 .
 
     ninja -C ../build-wine64
@@ -47,7 +40,7 @@ build()
 
 package()
 {
-    depends=('nvidia-utils' 'wine')
+    depends+=('nvidia-utils')
 
     DESTDIR="${pkgdir}" ninja -C "${srcdir}/build-mingw64" install
     DESTDIR="${pkgdir}" ninja -C "${srcdir}/build-wine64" install
