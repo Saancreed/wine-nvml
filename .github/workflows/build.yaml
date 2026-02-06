@@ -30,6 +30,7 @@ jobs:
         with:
           name: wine-nvml-arch
           path: usr/**
+
   build-ubuntu:
     name: Build on Ubuntu
     runs-on: ubuntu-latest
@@ -55,4 +56,28 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wine-nvml-ubuntu-noble
+          path: usr/**
+
+  build-proton:
+    name: Build with Proton SDK
+    runs-on: ubuntu-latest
+    container: registry.gitlab.steamos.cloud/proton/sniper/sdk:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists/bullseye/winehq-bullseye.sources
+          wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
+          apt-get update
+          apt-get -y install wine-devel-amd64 wine-devel-i386 wine-devel-dev winehq-devel
+      - name: Build
+        run: |
+          export DESTDIR="${PWD}"
+          ./build.sh --install
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wine-nvml-proton-sniper
           path: usr/**
