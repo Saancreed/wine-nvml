@@ -22,7 +22,7 @@
 set -euo pipefail
 shopt -s extglob
 
-version="${1:-590.48.01}"
+version="${1:-595.58.03}"
 
 header_url="https://raw.githubusercontent.com/NVIDIA/nvidia-settings/${version}/src/nvml.h"
 
@@ -354,20 +354,27 @@ declare -A known_funcs=(
     [nvmlVgpuTypeGetMaxInstancesPerGpuInstance]='passthrough'
     [nvmlGpuInstanceGetActiveVgpus]='passthrough'
     [nvmlGpuInstanceSetVgpuSchedulerState]='passthrough'
+    [nvmlGpuInstanceSetVgpuSchedulerState_v2]='passthrough'
     [nvmlGpuInstanceGetVgpuSchedulerState]='passthrough'
+    [nvmlGpuInstanceGetVgpuSchedulerState_v2]='passthrough'
     [nvmlGpuInstanceGetVgpuSchedulerLog]='passthrough'
+    [nvmlGpuInstanceGetVgpuSchedulerLog_v2]='passthrough'
     [nvmlGpuInstanceGetVgpuTypeCreatablePlacements]='passthrough'
     [nvmlGpuInstanceGetVgpuHeterogeneousMode]='passthrough'
     [nvmlGpuInstanceSetVgpuHeterogeneousMode]='passthrough'
+    [nvmlDeviceVgpuForceGspUnload]='passthrough' # requires privileged user
     # vGPU Migration
     [nvmlVgpuInstanceGetMetadata]='passthrough'
     [nvmlDeviceGetVgpuMetadata]='passthrough'
     [nvmlGetVgpuCompatibility]='passthrough'
     [nvmlDeviceGetPgpuMetadataString]='passthrough'
     [nvmlDeviceGetVgpuSchedulerLog]='passthrough'
+    [nvmlDeviceGetVgpuSchedulerLog_v2]='passthrough'
     [nvmlDeviceGetVgpuSchedulerState]='passthrough'
+    [nvmlDeviceGetVgpuSchedulerState_v2]='passthrough'
     [nvmlDeviceGetVgpuSchedulerCapabilities]='passthrough'
     [nvmlDeviceSetVgpuSchedulerState]='passthrough'
+    [nvmlDeviceSetVgpuSchedulerState_v2]='passthrough'
     [nvmlGetVgpuVersion]='passthrough'
     [nvmlSetVgpuVersion]='passthrough'
     # vGPU Utilization and Accounting
