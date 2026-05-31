@@ -100,7 +100,7 @@ declare -A known_funcs=(
     [nvmlDeviceGetInforomImageVersion]='passthrough'
     [nvmlDeviceGetInforomConfigurationChecksum]='passthrough'
     [nvmlDeviceValidateInforom]='passthrough'
-    [nvmlDeviceGetLastBBXFlushTime]='passthrough'
+    [nvmlDeviceGetLastBBXFlushTime]='custom'
     [nvmlDeviceGetBBXTimeData_v1]='passthrough'
     [nvmlDeviceGetDisplayMode]='passthrough'
     [nvmlDeviceGetDisplayActive]='passthrough'
@@ -679,6 +679,55 @@ function generate_spec()
     done
 
     IFS=' ' echo "@ cdecl ${func}(${argspecs[*]})"
+}
+
+function generate_nvmlDeviceGetLastBBXFlushTime()
+{
+    cat >> nvml_private.h << 'EOF'
+
+struct nvmlDeviceGetLastBBXFlushTime_params
+{
+    nvmlDevice_t device;
+    unsigned long long *timestamp;
+    unsigned long *durationUs;
+    nvmlReturn_t _result;
+};
+EOF
+
+    cat >> nvml.c << 'EOF'
+
+nvmlReturn_t DECLDIR nvmlDeviceGetLastBBXFlushTime(nvmlDevice_t device, unsigned long long *timestamp, unsigned long *durationUs)
+{
+    unsigned long long durationUs64;
+    struct nvmlDeviceGetLastBBXFlushTime_params params = { device, timestamp, (unsigned long *)&durationUs64, 0 };
+
+    TRACE("(%p, %p, %p)\n", device, timestamp, durationUs);
+
+    if (NVML_CALL(nvmlDeviceGetLastBBXFlushTime, &params))
+        return NVML_ERROR_UNKNOWN;
+
+    if (params._result == NVML_SUCCESS)
+        *durationUs = (unsigned long)durationUs64;
+
+    return params._result;
+}
+EOF
+
+    cat >> nvml_unixlib.c << 'EOF'
+
+static nvmlReturn_t (*pnvmlDeviceGetLastBBXFlushTime)(nvmlDevice_t device, unsigned long long *timestamp, unsigned long *durationUs) = NULL;
+
+static NTSTATUS wine_nvmlDeviceGetLastBBXFlushTime(void *args)
+{
+    struct nvmlDeviceGetLastBBXFlushTime_params *params = args;
+    params->_result = (pnvmlDeviceGetLastBBXFlushTime
+        ? pnvmlDeviceGetLastBBXFlushTime(params->device, params->timestamp, params->durationUs)
+        : NVML_ERROR_FUNCTION_NOT_FOUND);
+    return STATUS_SUCCESS;
+}
+EOF
+
+    calls+=(nvmlDeviceGetLastBBXFlushTime)
 }
 
 function generate_nvmlDeviceGetDriverModel()
