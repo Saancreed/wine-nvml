@@ -22,7 +22,7 @@
 set -euo pipefail
 shopt -s extglob
 
-version="${1:-595.58.03}"
+version="${1:-610.43.02}"
 
 header_url="https://raw.githubusercontent.com/NVIDIA/nvidia-settings/${version}/src/nvml.h"
 
@@ -54,6 +54,7 @@ declare -A known_funcs=(
     [nvmlSystemGetHicVersion]='passthrough'
     [nvmlSystemGetTopologyGpuSet]='NVML_ERROR_NOT_SUPPORTED' # Linux only
     [nvmlSystemGetDriverBranch]='passthrough'
+    [nvmlSystemGetCPER_v1]='passthrough'
     # Unit Queries
     [nvmlUnitGetCount]='passthrough'
     [nvmlUnitGetHandleByIndex]='passthrough'
@@ -100,6 +101,7 @@ declare -A known_funcs=(
     [nvmlDeviceGetInforomConfigurationChecksum]='passthrough'
     [nvmlDeviceValidateInforom]='passthrough'
     [nvmlDeviceGetLastBBXFlushTime]='passthrough'
+    [nvmlDeviceGetBBXTimeData_v1]='passthrough'
     [nvmlDeviceGetDisplayMode]='passthrough'
     [nvmlDeviceGetDisplayActive]='passthrough'
     [nvmlDeviceGetPersistenceMode]='NVML_ERROR_NOT_SUPPORTED' # Linux only
@@ -224,6 +226,7 @@ declare -A known_funcs=(
     [nvmlDeviceGetAccountingStats]='passthrough'
     [nvmlDeviceGetAccountingPids]='passthrough' # exposes Linux pids
     [nvmlDeviceGetAccountingBufferSize]='passthrough'
+    [nvmlDeviceGetAccountingStats_v2]='passthrough'
     [nvmlDeviceGetRetiredPages]='passthrough'
     [nvmlDeviceGetRetiredPages_v2]='passthrough'
     [nvmlDeviceGetRetiredPagesPendingStatus]='passthrough'
@@ -454,6 +457,7 @@ declare -A known_funcs=(
     [nvmlDevicePowerSmoothingSetState]='passthrough'
 
     [nvmlDeviceGetSramUniqueUncorrectedEccErrorCounts]='passthrough'
+    [nvmlDeviceGetRemappedRows_v2]='passthrough'
     [nvmlDeviceSetRusdSettings_v1]='NVML_ERROR_NO_PERMISSION' # requires root/admin permissions
     # API versioning support
     [nvmlInit]='passthrough'
