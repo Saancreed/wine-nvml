@@ -42,9 +42,9 @@ jobs:
         run: |
           export DEBIAN_FRONTEND=noninteractive
           apt-get update
-          apt-get install -y wget
+          apt-get install -y gpg wget
           wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/noble/winehq-noble.sources
-          wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
+          wget -O - https://dl.winehq.org/wine-builds/winehq.key | gpg --dearmor -o /etc/apt/keyrings/winehq-archive.key -
           dpkg --add-architecture i386
           apt-get update
           apt-get -y install curl gcc-multilib mingw-w64 meson ninja-build wine-devel-amd64 wine-devel-i386 wine-devel-dev winehq-devel
@@ -69,9 +69,9 @@ jobs:
         run: |
           export DEBIAN_FRONTEND=noninteractive
           apt-get update
-          apt-get install -y wget
+          apt-get install -y gpg wget
           wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/resolute/winehq-resolute.sources
-          wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
+          wget -O - https://dl.winehq.org/wine-builds/winehq.key | gpg --dearmor -o /etc/apt/keyrings/winehq-archive.key -
           apt-get update
           apt-get -y install curl gcc-multilib mingw-w64 meson ninja-build wine-devel wine-devel-dev winehq-devel
       - name: Build
@@ -95,7 +95,7 @@ jobs:
         run: |
           export DEBIAN_FRONTEND=noninteractive
           wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists/bullseye/winehq-bullseye.sources
-          wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
+          wget -O - https://dl.winehq.org/wine-builds/winehq.key | gpg --dearmor -o /etc/apt/keyrings/winehq-archive.key -
           apt-get update
           apt-get -y install wine-devel-amd64 wine-devel-i386 wine-devel-dev winehq-devel
       - name: Build
@@ -119,7 +119,7 @@ jobs:
         run: |
           export DEBIAN_FRONTEND=noninteractive
           wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists/trixie/winehq-trixie.sources
-          wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
+          wget -O - https://dl.winehq.org/wine-builds/winehq.key | gpg --dearmor -o /etc/apt/keyrings/winehq-archive.key -
           apt-get update
           apt-get -y install wine-devel-amd64 wine-devel-i386 wine-devel-dev winehq-devel
       - name: Build
