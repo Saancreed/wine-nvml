@@ -31,8 +31,8 @@ jobs:
           name: wine-nvml-arch
           path: usr/**
 
-  build-ubuntu:
-    name: Build on Ubuntu
+  build-ubuntu-noble:
+    name: Build on Ubuntu Noble
     runs-on: ubuntu-latest
     container: docker.io/library/ubuntu:noble
     steps:
@@ -56,6 +56,32 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: wine-nvml-ubuntu-noble
+          path: usr/**
+
+  build-ubuntu-resolute:
+    name: Build on Ubuntu Resolute
+    runs-on: ubuntu-latest
+    container: docker.io/library/ubuntu:resolute
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Install dependencies
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update
+          apt-get install -y wget
+          wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/resolute/winehq-resolute.sources
+          wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
+          apt-get update
+          apt-get -y install curl gcc-multilib mingw-w64 meson ninja-build wine-devel wine-devel-dev winehq-devel
+      - name: Build
+        run: |
+          export DESTDIR="${PWD}"
+          ./build.sh --install
+      - name: Upload artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: wine-nvml-ubuntu-resolute
           path: usr/**
 
   build-proton-sniper:
