@@ -22,7 +22,7 @@
 set -euo pipefail
 shopt -s extglob
 
-version="${1:-610.43.02}"
+version="${1:-620.70.06}"
 
 header_url="https://raw.githubusercontent.com/NVIDIA/nvidia-settings/${version}/src/nvml.h"
 
@@ -102,6 +102,7 @@ declare -A known_funcs=(
     [nvmlDeviceValidateInforom]='passthrough'
     [nvmlDeviceGetLastBBXFlushTime]='custom'
     [nvmlDeviceGetBBXTimeData_v1]='passthrough'
+    [nvmlDeviceGetGpuUptime_v1]='passthrough'
     [nvmlDeviceGetDisplayMode]='passthrough'
     [nvmlDeviceGetDisplayActive]='passthrough'
     [nvmlDeviceGetPersistenceMode]='NVML_ERROR_NOT_SUPPORTED' # Linux only
@@ -162,9 +163,13 @@ declare -A known_funcs=(
     [nvmlDeviceSetPowerMizerMode_v1]='passthrough'
     [nvmlDeviceGetTotalEnergyConsumption]='passthrough'
     [nvmlDeviceGetEnforcedPowerLimit]='passthrough'
+    [nvmlDeviceSetAdaptiveTgpMode_v1]='passthrough' # requires root/admin privileges
+    [nvmlDeviceGetAdaptiveTgpModeInfo_v1]='passthrough'
     [nvmlDeviceGetGpuOperationMode]='passthrough'
     [nvmlDeviceGetMemoryInfo]='passthrough' # always behaves like TCC on Windows
     [nvmlDeviceGetMemoryInfo_v2]='passthrough' # always behaves like TCC on Windows
+    [nvmlDeviceSetMemoryLimits_v1]='NVML_ERROR_NOT_SUPPORTED' # Linux only, requires root/admin permissions
+    [nvmlDeviceGetMemoryLimits_v1]='NVML_ERROR_NOT_SUPPORTED' # Linux only
     [nvmlDeviceGetComputeMode]='passthrough'
     [nvmlDeviceGetCudaComputeCapability]='passthrough'
     [nvmlDeviceGetDramEncryptionMode]='passthrough'
@@ -208,6 +213,7 @@ declare -A known_funcs=(
     [nvmlDeviceGetBusType]='passthrough'
     [nvmlDeviceGetGpuFabricInfo]='passthrough'
     [nvmlDeviceGetGpuFabricInfoV]='passthrough'
+    [nvmlDeviceGetGpuFabricInfo_v4]='passthrough'
     [nvmlSystemGetConfComputeCapabilities]='passthrough' # always behaves like TCC on Windows
     [nvmlSystemGetConfComputeState]='passthrough' # always behaves like TCC on Windows
     [nvmlDeviceGetConfComputeMemSizeInfo]='passthrough' # always behaves like TCC on Windows
@@ -220,8 +226,11 @@ declare -A known_funcs=(
     [nvmlSystemSetConfComputeGpusReadyState]='passthrough' # always behaves like TCC on Windows
     [nvmlSystemSetConfComputeKeyRotationThresholdInfo]='passthrough' # always behaves like TCC on Windows
     [nvmlSystemGetConfComputeSettings]='passthrough' # always behaves like TCC on Windows
+    [nvmlSystemGetConfComputeSettings_v2]='passthrough' # always behaves like TCC on Windows
     [nvmlDeviceGetGspFirmwareVersion]='passthrough'
     [nvmlDeviceGetGspFirmwareMode]='passthrough'
+    [nvmlDeviceGetSramEccErrorStatus]='passthrough' # requires root/admin permissions
+    [nvmlDeviceSetPowerManagementLimit_v2]='passthrough' # requires root/admin permissions
     [nvmlDeviceGetAccountingMode]='passthrough'
     [nvmlDeviceGetAccountingStats]='passthrough'
     [nvmlDeviceGetAccountingPids]='passthrough' # exposes Linux pids
@@ -240,6 +249,7 @@ declare -A known_funcs=(
     [nvmlDeviceGetPdi]='passthrough'
     [nvmlDeviceSetHostname_v1]='NVML_ERROR_NOT_SUPPORTED' # Linux only, requires root/admin permissions
     [nvmlDeviceGetHostname_v1]='NVML_ERROR_NOT_SUPPORTED' # Linux only
+    [nvmlDevicePerfMetricsGetSamples_v1]='passthrough'
     # Unit Commands
     # each requires root
     [nvmlUnitSetLedState]='NVML_ERROR_NO_PERMISSION'
@@ -284,11 +294,32 @@ declare -A known_funcs=(
     [nvmlDeviceFreezeNvLinkUtilizationCounter]='passthrough'
     [nvmlDeviceResetNvLinkUtilizationCounter]='passthrough'
     [nvmlDeviceGetNvLinkRemoteDeviceType]='passthrough'
+    [nvmlDeviceSetNvLinkDeviceLowPowerThreshold]='passthrough'
+    [nvmlSystemSetNvlinkBwMode]='passthrough'
+    [nvmlSystemGetNvlinkBwMode]='passthrough'
+    [nvmlDeviceGetNvlinkSupportedBwModes]='passthrough'
+    [nvmlDeviceGetNvlinkBwMode]='passthrough'
+    [nvmlDeviceSetNvlinkBwMode]='passthrough'
+    [nvmlDeviceSetNvlinkBwModeAsync_v1]='passthrough'
+    [nvmlDeviceGetNvLinkInfo]='passthrough'
+    [nvmlDeviceGetNvLinkInfo_v3]='passthrough'
+    [nvmlDeviceGetNvLinkTelemetrySamples_v1]='passthrough'
+    [nvmlDeviceGetNvlinkRemapTableInfo_v1]='passthrough'
+    [nvmlDeviceSetNvlinkNvleReady_v1]='passthrough'
+    [nvmlDeviceLockNvlinkRemapTable_v1]='passthrough'
+    [nvmlDeviceSetupNvlinkNvleEncryptionKey_v1]='passthrough'
+    [nvmlDeviceGetNvlinkNvlePrivateInfo_v1]='passthrough'
     # Event Handling Methods
     [nvmlEventSetCreate]='passthrough'
     [nvmlDeviceRegisterEvents]='NVML_ERROR_NOT_SUPPORTED' # Linux only
     [nvmlDeviceGetSupportedEventTypes]='custom' # returns an empty mask in eventTypes on Windows
     [nvmlEventSetWait_v2]='passthrough' # uses Linux behavior
+    [nvmlEventSetRegisterGpuOperationalEvents_v1]='passthrough' # uses Linux behavior
+    [nvmlEventSetWait_v3]='passthrough' # uses Linux behavior
+    [nvmlEventSetGetContextCount_v1]='passthrough' # uses Linux behavior
+    [nvmlEventSetGetContextInfo_v1]='passthrough' # uses Linux behavior
+    [nvmlEventSetGetContextData_v1]='passthrough' # uses Linux behavior
+    [nvmlEventSetGetGpuOperationalEventContextLegacyXid_v1]='passthrough' # uses Linux behavior
     [nvmlEventSetFree]='passthrough'
     [nvmlSystemEventSetCreate]='passthrough'
     [nvmlSystemEventSetFree]='passthrough'
@@ -436,16 +467,7 @@ declare -A known_funcs=(
     [nvmlGpmQueryDeviceSupport]='passthrough'
     [nvmlGpmQueryIfStreamingEnabled]='passthrough' # always behaves like TCC on Windows
     [nvmlGpmSetStreamingEnabled]='passthrough' # always behaves like TCC on Windows
-    [nvmlDeviceSetNvLinkDeviceLowPowerThreshold]='passthrough'
-    [nvmlSystemSetNvlinkBwMode]='passthrough'
-    [nvmlSystemGetNvlinkBwMode]='passthrough'
-    [nvmlDeviceGetNvlinkSupportedBwModes]='passthrough'
-    [nvmlDeviceGetNvlinkBwMode]='passthrough'
-    [nvmlDeviceSetNvlinkBwMode]='passthrough'
-    [nvmlDeviceGetNvLinkInfo]='passthrough'
 
-    [nvmlDeviceSetPowerManagementLimit_v2]='passthrough' # requires root/admin permissions
-    [nvmlDeviceGetSramEccErrorStatus]='passthrough' # requires root/admin permissions
     [nvmlDeviceGetCapabilities]='passthrough'
     [nvmlDeviceWorkloadPowerProfileGetProfilesInfo]='passthrough'
     [nvmlDeviceWorkloadPowerProfileGetCurrentProfiles]='passthrough'
@@ -459,6 +481,7 @@ declare -A known_funcs=(
     [nvmlDeviceGetSramUniqueUncorrectedEccErrorCounts]='passthrough'
     [nvmlDeviceGetRemappedRows_v2]='passthrough'
     [nvmlDeviceSetRusdSettings_v1]='NVML_ERROR_NO_PERMISSION' # requires root/admin permissions
+    [nvmlDeviceGetBankRemapperStatus_v1]='passthrough'
     # API versioning support
     [nvmlInit]='passthrough'
     [nvmlDeviceGetCount]='passthrough'
