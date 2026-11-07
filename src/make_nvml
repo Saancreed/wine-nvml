@@ -523,13 +523,13 @@ WINE_DEFAULT_DEBUG_CHANNEL(nvml);
 
 const DECLDIR char* nvmlErrorString(nvmlReturn_t result)
 {
-    struct nvmlErrorString_params params = { result, NULL };
+    struct nvmlErrorString_params _params = { result, NULL };
 
     TRACE("(%u)\n", result);
 
-    return NVML_CALL(nvmlErrorString, &params)
+    return NVML_CALL(nvmlErrorString, &_params)
         ? "Unknown Error"
-        : params.errorString;
+        : _params.errorString;
 }
 
 static const size_t export_table = sizeof(size_t);
@@ -699,17 +699,17 @@ EOF
 nvmlReturn_t DECLDIR nvmlDeviceGetLastBBXFlushTime(nvmlDevice_t device, unsigned long long *timestamp, unsigned long *durationUs)
 {
     unsigned long long durationUs64;
-    struct nvmlDeviceGetLastBBXFlushTime_params params = { device, timestamp, (unsigned long *)&durationUs64, 0 };
+    struct nvmlDeviceGetLastBBXFlushTime_params _params = { device, timestamp, (unsigned long *)&durationUs64, 0 };
 
     TRACE("(%p, %p, %p)\n", device, timestamp, durationUs);
 
-    if (NVML_CALL(nvmlDeviceGetLastBBXFlushTime, &params))
+    if (NVML_CALL(nvmlDeviceGetLastBBXFlushTime, &_params))
         return NVML_ERROR_UNKNOWN;
 
-    if (params._result == NVML_SUCCESS)
+    if (_params._result == NVML_SUCCESS)
         *durationUs = (unsigned long)durationUs64;
 
-    return params._result;
+    return _params._result;
 }
 EOF
 
@@ -951,13 +951,13 @@ static NTSTATUS wine_%s(void *args)
                     printf '
 nvmlReturn_t DECLDIR %s(%s)
 {
-    struct %s_params params = { %s, 0 };
+    struct %s_params _params = { %s, 0 };
 
     TRACE("(%s)\\n", %s);
 
-    return NVML_CALL(%s, &params)
+    return NVML_CALL(%s, &_params)
         ? NVML_ERROR_UNKNOWN
-        : params._result;
+        : _params._result;
 }
 ' "${func}" "${allargs}" "${func}" "${allargnames}" "${allprintformats}" "${allargnames}" "${func}" >> nvml.c
 
